@@ -8,6 +8,8 @@ import Dashboard from './pages/Dashboard'
 import ChecklistSession from './pages/ChecklistSession'
 import History from './pages/History'
 import SessionDetail from './pages/SessionDetail'
+import AdminUsers from './pages/AdminUsers'
+import AdminChecklists from './pages/AdminChecklists'
 
 function FullScreenLoader() {
   return (
@@ -21,6 +23,14 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth()
   if (loading) return <FullScreenLoader />
   if (!user) return <Navigate to="/login" replace />
+  return <>{children}</>
+}
+
+function AdminRoute({ children }: { children: ReactNode }) {
+  const { user, isAdmin, loading } = useAuth()
+  if (loading) return <FullScreenLoader />
+  if (!user) return <Navigate to="/login" replace />
+  if (!isAdmin) return <Navigate to="/" replace />
   return <>{children}</>
 }
 
@@ -66,6 +76,22 @@ export default function App() {
             <ProtectedRoute>
               <SessionDetail />
             </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/usuarios"
+          element={
+            <AdminRoute>
+              <AdminUsers />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/checklists"
+          element={
+            <AdminRoute>
+              <AdminChecklists />
+            </AdminRoute>
           }
         />
         <Route path="*" element={<Navigate to="/" replace />} />

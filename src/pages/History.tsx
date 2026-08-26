@@ -9,6 +9,7 @@ interface HistoryRow {
   started_at: string
   completed_at: string | null
   checklist_templates: { name: string } | null
+  profiles: { full_name: string | null } | null
 }
 
 const STATUS_LABEL: Record<string, { text: string; className: string }> = {
@@ -27,7 +28,7 @@ function formatDate(iso: string): string {
 }
 
 export default function History() {
-  const { user } = useAuth()
+  const { user, isAdmin } = useAuth()
   const navigate = useNavigate()
   const [sessions, setSessions] = useState<HistoryRow[]>([])
   const [loading, setLoading] = useState(true)
@@ -44,12 +45,17 @@ export default function History() {
 
   async function load() {
     setLoading(true)
-    const { data, error: fetchError } = await supabase
+    const query = supabase
       .from('closing_sessions')
-      .select('id, status, started_at, completed_at, checklist_templates(name)')
-      .eq('user_id', user!.id)
+      .select('id, status, started_at, completed_at, checklist_templates(name), profiles(full_name)')
       .order('started_at', { ascending: false })
       .limit(50)
+
+    if (!isAdmin) {
+      query.eq('user_id', user!.id)
+    }
+
+    const { data, error: fetchError } = await query
 
     if (fetchError) {
       setError('Não foi possível carregar o histórico.')
@@ -62,7 +68,9 @@ export default function History() {
   return (
     <main className="app-main">
       <p className="page-title">Histórico</p>
-      <p className="page-subtitle">Seus fechamentos anteriores.</p>
+      <p className="page-subtitle">
+        {isAdmin ? 'Fechamentos de todos os usuários.' : 'Seus fechamentos anteriores.'}
+      </p>
 
       {error && <div className="form-error">{error}</div>}
 
@@ -86,6 +94,7 @@ export default function History() {
                   {s.checklist_templates?.name ?? 'Checklist'}
                 </p>
                 <p style={{ fontSize: 13, color: 'var(--color-text-muted)', margin: 0 }}>
+                  {isAdmin && s.profiles?.full_name ? `${s.profiles.full_name} · ` : ''}
                   {formatDate(s.started_at)}
                 </p>
               </div>

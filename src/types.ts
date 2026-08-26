@@ -1,5 +1,22 @@
 export type ItemStatus = 'done' | 'skipped'
 
+export interface AdminUser {
+  id: string
+  email: string | null
+  full_name: string | null
+  is_admin: boolean
+  created_at: string
+}
+
+/** ChecklistTemplate with admin-only fields (full row from the DB). */
+export interface AdminChecklistTemplate {
+  id: string
+  name: string
+  description: string | null
+  is_active: boolean
+  created_at: string
+}
+
 export interface ChecklistTemplate {
   id: string
   name: string
