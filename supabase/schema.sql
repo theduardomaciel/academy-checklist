@@ -21,6 +21,7 @@ create table if not exists checklist_items (
   template_id uuid not null references checklist_templates(id) on delete cascade,
   order_index int not null,
   title text not null,
+  location text,
   instructions text,
   requires_photo boolean not null default true,
   created_at timestamptz not null default now()
@@ -30,7 +31,7 @@ create index if not exists checklist_items_template_idx on checklist_items(templ
 
 create table if not exists closing_sessions (
   id uuid primary key default gen_random_uuid(),
-  template_id uuid not null references checklist_templates(id),
+  template_id uuid not null references checklist_templates(id) on delete cascade,
   user_id uuid not null references auth.users(id) on delete cascade,
   status text not null default 'in_progress' check (status in ('in_progress', 'completed')),
   started_at timestamptz not null default now(),

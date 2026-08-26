@@ -38,6 +38,11 @@ export default function ItemCard({
         </div>
         <div className="flex-1">
           <p className="m-0 mb-1 text-base font-bold">{item.title}</p>
+          {item.location && (
+            <p className="m-0 mb-1 text-sm leading-normal text-muted-foreground">
+              📍 {item.location}
+            </p>
+          )}
           {item.instructions && (
             <p className="m-0 text-sm leading-normal text-muted-foreground">{item.instructions}</p>
           )}

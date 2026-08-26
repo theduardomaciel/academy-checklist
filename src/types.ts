@@ -26,6 +26,7 @@ export interface ChecklistTemplate {
 export interface ChecklistItem {
   id: string
   title: string
+  location: string | null
   instructions: string | null
   order_index: number
   requires_photo: boolean
