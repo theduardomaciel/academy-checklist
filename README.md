@@ -24,15 +24,15 @@ no back-end, hospedado na **Vercel**.
 4. Promova o primeiro administrador manualmente (ninguém consegue fazer
    isso pelo app ainda):
 
-   ```sql
-   update public.profiles set is_admin = true where id = '<seu-user-uuid>';
-   ```
+    ```sql
+    update public.profiles set is_admin = true where id = '<seu-user-uuid>';
+    ```
 
 5. Em **Project Settings > API**, copie a `Project URL` e a `anon public key`.
 
 Usuários são criados de duas formas:
 
-- **Pelo app**, na tela *Administração · Usuários* (`/admin/usuarios`) —
+- **Pelo app**, na tela _Administração · Usuários_ (`/admin/usuarios`) —
   disponível apenas para admins — usando a Edge Function `create-user`
   (ver seção 6). Não há autocadastro no app.
 - **Manualmente**, em **Authentication > Users** no painel do Supabase.
@@ -135,10 +135,43 @@ Admins têm um atalho de engrenagem no cabeçalho e acesso a duas telas:
 - Admins também veem, no histórico, os fechamentos de **todos** os
   usuários (com nome de quem registrou).
 
-Deploy da função de criação de usuários:
+### Deploy da função `create-user`
+
+A função roda como Edge Function no projeto Supabase e **precisa estar
+publicada** para que a tela `/admin/usuarios` consiga criar usuários. Se ela
+não estiver deployada, a chamada do app recebe `404` no preflight de CORS e
+falha. O código da função (`supabase/functions/create-user/index.ts`) já trata
+o preflight `OPTIONS` e devolve os cabeçalhos `Access-Control-Allow-*`; basta
+publicá-la.
+
+Pré-requisitos (uma vez por máquina):
 
 ```bash
+# instalar a CLI do Supabase
+npm install -g supabase        # ou: iwr https://supabase.com/install.ps1 | iex
+supabase login                 # abre o navegador para autenticar
+```
+
+Deploy (do diretório raiz do projeto):
+
+```bash
+supabase link --project-ref <project-ref>
+supabase secrets set \
+  SUPABASE_URL=<url-do-projeto> \
+  SUPABASE_ANON_KEY=<sua-anon-key> \
+  SUPABASE_SERVICE_ROLE_KEY=<sua-service-role-key>
 supabase functions deploy create-user
+```
+
+- `SUPABASE_ANON_KEY` e `SUPABASE_SERVICE_ROLE_KEY` ficam em **Project Settings
+    > API**. A service-role key é secreta: não a exponha no front-end.
+- A função valida o JWT do chamador contra `is_admin()`, então **não** use
+  `--no-verify-jwt` aqui.
+
+### Deploy da função `cleanup-old-photos`
+
+```bash
+supabase functions deploy cleanup-old-photos --no-verify-jwt
 ```
 
 ## 7. Modo claro/escuro e identidade visual
@@ -161,9 +194,9 @@ usadas como ícone do PWA.
   `/admin/checklists` (não precisa mais mexer em SQL nem no Table Editor).
 - Restrição de domínio de e-mail — hoje só quem tem conta criada por um
   admin entra; quando quiser reforçar:
-  - **Auth Hook** (`Before User Created`, em Authentication > Hooks):
-    rejeita o cadastro se o e-mail não terminar com o domínio da Edge
-    Academy; ou
-  - **Trigger no Postgres** em `auth.users`, como camada extra.
+    - **Auth Hook** (`Before User Created`, em Authentication > Hooks):
+      rejeita o cadastro se o e-mail não terminar com o domínio da Edge
+      Academy; ou
+    - **Trigger no Postgres** em `auth.users`, como camada extra.
 - Notificação (e-mail/push) se ninguém finalizar o checklist até um
   horário limite.

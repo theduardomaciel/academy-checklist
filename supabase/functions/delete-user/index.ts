@@ -1,21 +1,20 @@
-// Edge Function: create-user
+// Edge Function: delete-user
 //
-// Creates a new auth user (email + password + optional name) on behalf of an
-// authenticated admin. The caller's JWT is verified and checked against the
+// Deletes an auth user (and, via ON DELETE CASCADE, their profile) on behalf of
+// an authenticated admin. The caller's JWT is verified and checked against the
 // public.is_admin() SQL function before the service-role client is used.
+// Admins cannot be deleted through this endpoint.
 //
 // Deploy with:
-//   supabase functions deploy create-user
+//   supabase functions deploy delete-user
 //
 // Body (JSON):
-//   { "email": "user@example.com", "password": "...", "fullName": "..." }
+//   { "uid": "<user-uuid>" }
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.4'
 
-interface CreateUserPayload {
-  email?: string
-  password?: string
-  fullName?: string
+interface DeleteUserPayload {
+  uid?: string
 }
 
 const CORS_HEADERS = {
@@ -71,7 +70,7 @@ Deno.serve(async (req) => {
     })
   }
 
-  let payload: CreateUserPayload
+  let payload: DeleteUserPayload
   try {
     payload = await req.json()
   } catch {
@@ -81,41 +80,60 @@ Deno.serve(async (req) => {
     })
   }
 
-  const email = payload.email?.trim().toLowerCase()
-  const password = payload.password ?? ''
-  const fullName = payload.fullName?.trim()
-
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return new Response(JSON.stringify({ error: 'E-mail inválido' }), {
+  const uid = payload.uid?.trim()
+  if (!uid || !/^[0-9a-fA-F-]{36}$/.test(uid)) {
+    return new Response(JSON.stringify({ error: 'UID inválido' }), {
       status: 400,
       headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' }
     })
   }
-  if (password.length < 6) {
-    return new Response(JSON.stringify({ error: 'A senha deve ter pelo menos 6 caracteres' }), {
-      status: 400,
+
+  // Only non-admin users may be deleted.
+  const { data: target, error: targetError } = await callerClient
+    .from('profiles')
+    .select('is_admin')
+    .eq('id', uid)
+    .maybeSingle()
+
+  if (targetError) {
+    return new Response(
+      JSON.stringify({ error: targetError.message }),
+      { status: 400, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+    )
+  }
+  if (!target) {
+    return new Response(JSON.stringify({ error: 'Usuário não encontrado.' }), {
+      status: 404,
       headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' }
     })
+  }
+  if (target.is_admin) {
+    return new Response(
+      JSON.stringify({ error: 'Não é possível excluir um administrador.' }),
+      { status: 403, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+    )
+  }
+
+  // Never let an admin delete their own account through this endpoint.
+  if (uid === user.id) {
+    return new Response(
+      JSON.stringify({ error: 'Não é possível excluir a própria conta.' }),
+      { status: 403, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
+    )
   }
 
   const adminClient = createClient(supabaseUrl, serviceRoleKey)
 
-  const { data: created, error: createError } = await adminClient.auth.admin.createUser({
-    email,
-    password,
-    email_confirm: true,
-    user_metadata: fullName ? { full_name: fullName } : undefined
-  })
-
-  if (createError) {
+  const { error: deleteError } = await adminClient.auth.admin.deleteUser(uid)
+  if (deleteError) {
     return new Response(
-      JSON.stringify({ error: createError.message }),
+      JSON.stringify({ error: deleteError.message }),
       { status: 400, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
     )
   }
 
-  return new Response(
-    JSON.stringify({ user: { id: created.user.id, email: created.user.email } }),
-    { status: 201, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }
-  )
+  return new Response(JSON.stringify({ ok: true }), {
+    status: 200,
+    headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' }
+  })
 })

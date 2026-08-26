@@ -14,6 +14,16 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from '@/components/ui/alert-dialog'
 import type { AdminUser } from '@/types'
 
 export default function AdminUsers() {
@@ -25,6 +35,10 @@ export default function AdminUsers() {
   const [fullName, setFullName] = useState('')
   const [password, setPassword] = useState('')
   const [creating, setCreating] = useState(false)
+
+  // Delete-user dialog state
+  const [deleteTarget, setDeleteTarget] = useState<AdminUser | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     load()
@@ -79,6 +93,38 @@ export default function AdminUsers() {
       toast.error(err instanceof Error ? err.message : 'Erro inesperado ao criar o usuário.')
     } finally {
       setCreating(false)
+    }
+  }
+
+  async function handleDelete() {
+    if (!deleteTarget) return
+    setDeleting(true)
+    try {
+      const { data: sessionData } = await supabase.auth.getSession()
+      const token = sessionData.session?.access_token
+      if (!token) throw new Error('Sessão expirada. Faça login novamente.')
+
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-user`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ uid: deleteTarget.id })
+      })
+
+      const body = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        throw new Error(body.error ?? 'Não foi possível excluir o usuário.')
+      }
+
+      setUsers((prev) => prev.filter((u) => u.id !== deleteTarget.id))
+      toast.success(`Usuário ${deleteTarget.email} excluído com sucesso.`)
+      setDeleteTarget(null)
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Erro inesperado ao excluir o usuário.')
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -152,6 +198,16 @@ export default function AdminUsers() {
               </div>
               <div className="flex items-center gap-2">
                 {u.is_admin && <Badge className="bg-success-bg text-success">Admin</Badge>}
+                {!u.is_admin && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-destructive"
+                    onClick={() => setDeleteTarget(u)}
+                  >
+                    Remover usuário
+                  </Button>
+                )}
                 <Button variant="outline" size="sm" onClick={() => toggleAdmin(u)}>
                   {u.is_admin ? 'Remover admin' : 'Tornar admin'}
                 </Button>
@@ -160,6 +216,34 @@ export default function AdminUsers() {
           </Card>
         ))
       )}
+
+      <AlertDialog
+        open={deleteTarget !== null}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remover usuário?</AlertDialogTitle>
+            <AlertDialogDescription>
+              O usuário {deleteTarget?.email ?? ''} será excluído permanentemente,
+              junto com o seu perfil. Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              disabled={deleting}
+              onClick={(e) => {
+                e.preventDefault()
+                handleDelete()
+              }}
+            >
+              {deleting ? 'Excluindo…' : 'Remover'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <BottomNav>
         <Button variant="outline" render={<Link to="/" />}>
