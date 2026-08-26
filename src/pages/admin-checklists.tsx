@@ -51,7 +51,7 @@ import {
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import type { AdminChecklistTemplate, ChecklistItem } from "@/types";
-import { Camera, Edit, Pin, Power, PowerOff, Trash } from "lucide-react";
+import { Camera, Edit, MapPin, Power, PowerOff, Trash } from "lucide-react";
 import { cn } from "#lib/utils";
 
 interface TemplateWithItems extends AdminChecklistTemplate {
@@ -845,8 +845,7 @@ function SortableRow({
 				<div className="flex flex-row items-center justify-start gap-2">
 					{item.location && (
 						<Badge variant="outline">
-							{" "}
-							<Pin /> {item.location}
+							<MapPin /> {item.location}
 						</Badge>
 					)}
 					{item.requires_photo && (
