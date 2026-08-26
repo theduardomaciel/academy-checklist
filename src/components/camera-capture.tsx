@@ -1,6 +1,7 @@
 import type { ChangeEvent } from 'react'
-import { compressPhoto } from '../utils/imageCompression'
-import CameraIcon from './icons/CameraIcon'
+import { Camera } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { compressPhoto } from '@/utils/image-compression'
 
 const CAPTURE_INPUT_CLASS = 'hidden'
 
@@ -43,7 +44,7 @@ export default function CameraCapture({ photoUrl, onPhotoSelected, disabled }: C
             className="block max-h-80 w-full object-cover"
           />
         </div>
-        <label className={`${CAPTURE_LABEL_CLASS} mt-2.5 border py-2.5`}>
+        <label className={cn(CAPTURE_LABEL_CLASS, 'mt-2.5 border py-2.5')}>
           Tirar outra foto
           <input
             className={CAPTURE_INPUT_CLASS}
@@ -59,8 +60,8 @@ export default function CameraCapture({ photoUrl, onPhotoSelected, disabled }: C
   }
 
   return (
-    <label className={`${CAPTURE_LABEL_CLASS} border py-7`}>
-      <CameraIcon />
+    <label className={cn(CAPTURE_LABEL_CLASS, 'border py-7')}>
+      <Camera />
       Tirar foto do item
       <input
         className={CAPTURE_INPUT_CLASS}

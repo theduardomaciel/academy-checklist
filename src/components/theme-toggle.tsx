@@ -1,7 +1,6 @@
-import { useTheme } from '../contexts/ThemeContext'
+import { Moon, Sun } from 'lucide-react'
+import { useTheme } from '@/contexts/theme-context'
 import { Button } from '@/components/ui/button'
-import SunIcon from './icons/SunIcon'
-import MoonIcon from './icons/MoonIcon'
 
 export default function ThemeToggle() {
   const { theme, toggleTheme } = useTheme()
@@ -16,7 +15,7 @@ export default function ThemeToggle() {
       title={isDark ? 'Mudar para modo claro' : 'Mudar para modo escuro'}
       aria-label={isDark ? 'Mudar para modo claro' : 'Mudar para modo escuro'}
     >
-      {isDark ? <SunIcon /> : <MoonIcon />}
+      {isDark ? <Sun /> : <Moon />}
     </Button>
   )
 }

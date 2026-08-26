@@ -1,9 +1,9 @@
-import CameraCapture from './CameraCapture'
-import { Spinner } from './Spinner'
+import CameraCapture from './camera-capture'
+import { Spinner } from './spinner'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import type { ChecklistItem, ItemStatus } from '../types'
+import type { ChecklistItem, ItemStatus } from '@/types'
 
 interface ItemCardProps {
   index: number

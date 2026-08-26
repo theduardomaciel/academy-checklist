@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { supabase } from '../lib/supabaseClient'
-import { useAuth } from '../contexts/AuthContext'
-import { Spinner } from '../components/Spinner'
+import { supabase } from '@/lib/supabase-client'
+import { useAuth } from '@/contexts/auth-context'
+import { Spinner } from '@/components/spinner'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card'
@@ -13,8 +13,8 @@ import {
   PageMain,
   PageSubtitle,
   PageTitle
-} from '../components/PageShell'
-import type { ChecklistTemplate, ClosingSession } from '../types'
+} from '@/components/page-shell'
+import type { ChecklistTemplate, ClosingSession } from '@/types'
 
 interface ActiveSession extends ClosingSession {
   checklist_templates?: { name: string } | null

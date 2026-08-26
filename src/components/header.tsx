@@ -1,9 +1,8 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { useAuth } from '../contexts/AuthContext'
+import { LogOut, Settings } from 'lucide-react'
+import { useAuth } from '@/contexts/auth-context'
 import { Button } from '@/components/ui/button'
-import ThemeToggle from './ThemeToggle'
-import SignOutIcon from './icons/SignOutIcon'
-import SettingsIcon from './icons/SettingsIcon'
+import ThemeToggle from './theme-toggle'
 
 export default function Header() {
   const { signOut, isAdmin } = useAuth()
@@ -33,7 +32,7 @@ export default function Header() {
             title="Administração"
             aria-label="Administração"
           >
-            <SettingsIcon />
+            <Settings />
           </Button>
         )}
         <ThemeToggle />
@@ -45,7 +44,7 @@ export default function Header() {
           title="Sair"
           aria-label="Sair"
         >
-          <SignOutIcon />
+          <LogOut />
         </Button>
       </div>
     </header>

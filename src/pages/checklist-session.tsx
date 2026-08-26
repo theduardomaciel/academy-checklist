@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { supabase, PHOTOS_BUCKET } from '../lib/supabaseClient'
-import ItemCard from '../components/ItemCard'
-import ProgressBar from '../components/ProgressBar'
-import { Spinner } from '../components/Spinner'
+import { supabase, PHOTOS_BUCKET } from '@/lib/supabase-client'
+import ItemCard from '@/components/item-card'
+import ProgressBar from '@/components/progress-bar'
+import { Spinner } from '@/components/spinner'
 import {
   BottomNav,
   CenteredLoader,
@@ -11,10 +11,10 @@ import {
   PageMain,
   PageSubtitle,
   PageTitle
-} from '../components/PageShell'
+} from '@/components/page-shell'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import type { ChecklistItem, ClosingSession, LogEntry } from '../types'
+import type { ChecklistItem, ClosingSession, LogEntry } from '@/types'
 
 export default function ChecklistSession() {
   const { sessionId } = useParams<{ sessionId: string }>()

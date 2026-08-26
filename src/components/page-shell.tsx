@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { cn } from '@/lib/utils'
-import { Spinner } from './Spinner'
+import { Spinner } from './spinner'
 
 /** Standard page container: centered column with bottom padding for the nav bar. */
 export function PageMain({ children, className }: { children: ReactNode; className?: string }) {

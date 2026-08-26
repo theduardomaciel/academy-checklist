@@ -4,8 +4,8 @@
 -- AFTER schema.sql has been applied. Safe to re-run.
 --
 -- Adds:
---   * public.profiles (one row per auth user, with an is_admin flag)
 --   * public.is_admin() helper
+--   * public.profiles (one row per auth user, with an is_admin flag)
 --   * RLS policies letting admins manage checklist templates/items,
 --     view every session/log and read all profiles
 --   * RPCs: list_users(), set_user_admin(uid, is_admin)
@@ -15,7 +15,8 @@
 -- ============================================================================
 
 -- ----------------------------------------------------------------------------
--- 1. Profiles table + auto-create trigger
+-- 1. Profiles table
+--    Created first because public.is_admin() below reads from it.
 -- ----------------------------------------------------------------------------
 
 create table if not exists public.profiles (
@@ -26,6 +27,30 @@ create table if not exists public.profiles (
 );
 
 alter table public.profiles enable row level security;
+
+-- ----------------------------------------------------------------------------
+-- 2. is_admin() helper
+--    Must exist BEFORE any policy below references it — Postgres validates
+--    function references at policy/function creation time.
+-- ----------------------------------------------------------------------------
+
+create or replace function public.is_admin(uid uuid default auth.uid())
+returns boolean
+language sql
+stable
+security definer set search_path = public
+as $$
+  select exists (
+    select 1 from public.profiles p
+    where p.id = uid and p.is_admin
+  );
+$$;
+
+grant execute on function public.is_admin(uuid) to authenticated;
+
+-- ----------------------------------------------------------------------------
+-- 3. Profile policies + auto-create trigger
+-- ----------------------------------------------------------------------------
 
 drop policy if exists "profiles_read_own" on public.profiles;
 create policy "profiles_read_own"
@@ -68,25 +93,7 @@ from auth.users u
 on conflict (id) do nothing;
 
 -- ----------------------------------------------------------------------------
--- 2. is_admin() helper
--- ----------------------------------------------------------------------------
-
-create or replace function public.is_admin(uid uuid default auth.uid())
-returns boolean
-language sql
-stable
-security definer set search_path = public
-as $$
-  select exists (
-    select 1 from public.profiles p
-    where p.id = uid and p.is_admin
-  );
-$$;
-
-grant execute on function public.is_admin(uuid) to authenticated;
-
--- ----------------------------------------------------------------------------
--- 3. Admin write access to checklist templates/items + read access to all
+-- 4. Admin write access to checklist templates/items + read access to all
 --    sessions/logs (so admins can review everyone's history).
 -- ----------------------------------------------------------------------------
 
@@ -117,7 +124,7 @@ create policy "logs_admin_read_all"
   using (public.is_admin());
 
 -- ----------------------------------------------------------------------------
--- 4. Admin RPCs (client cannot query auth.users directly)
+-- 5. Admin RPCs (client cannot query auth.users directly)
 -- ----------------------------------------------------------------------------
 
 create or replace function public.list_users()

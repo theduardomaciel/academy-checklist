@@ -1,27 +1,24 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { supabase } from '../lib/supabaseClient'
+import { toast } from 'sonner'
+import { supabase } from '@/lib/supabase-client'
 import {
   BottomNav,
   CenteredLoader,
-  FormError,
   FormField,
-  Notice,
   PageMain,
   PageSubtitle,
   PageTitle
-} from '../components/PageShell'
+} from '@/components/page-shell'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import type { AdminUser } from '../types'
+import type { AdminUser } from '@/types'
 
 export default function AdminUsers() {
   const [users, setUsers] = useState<AdminUser[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-  const [notice, setNotice] = useState('')
 
   // New-user form state
   const [email, setEmail] = useState('')
@@ -36,10 +33,9 @@ export default function AdminUsers() {
 
   async function load() {
     setLoading(true)
-    setError('')
     const { data, error: rpcError } = await supabase.rpc('list_users')
     if (rpcError) {
-      setError('Não foi possível carregar os usuários.')
+      toast.error('Não foi possível carregar os usuários.')
     } else {
       setUsers((data ?? []) as unknown as AdminUser[])
     }
@@ -48,11 +44,9 @@ export default function AdminUsers() {
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault()
-    setError('')
-    setNotice('')
 
     if (!email.trim() || password.length < 6) {
-      setError('Informe um e-mail válido e uma senha com pelo menos 6 caracteres.')
+      toast.error('Informe um e-mail válido e uma senha com pelo menos 6 caracteres.')
       return
     }
 
@@ -79,28 +73,29 @@ export default function AdminUsers() {
       setEmail('')
       setFullName('')
       setPassword('')
-      setNotice(`Usuário ${email.trim()} criado com sucesso.`)
+      toast.success(`Usuário ${email.trim()} criado com sucesso.`)
       await load()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro inesperado ao criar o usuário.')
+      toast.error(err instanceof Error ? err.message : 'Erro inesperado ao criar o usuário.')
     } finally {
       setCreating(false)
     }
   }
 
   async function toggleAdmin(target: AdminUser) {
-    setError('')
-    setNotice('')
     const { error: rpcError } = await supabase.rpc('set_user_admin', {
       target_uid: target.id,
       admin_flag: !target.is_admin
     })
     if (rpcError) {
-      setError(rpcError.message)
+      toast.error(rpcError.message)
       return
     }
     setUsers((prev) =>
       prev.map((u) => (u.id === target.id ? { ...u, is_admin: !target.is_admin } : u))
+    )
+    toast.success(
+      `${target.full_name ?? target.email} ${target.is_admin ? 'não é mais' : 'agora é'} administrador.`
     )
   }
 
@@ -108,9 +103,6 @@ export default function AdminUsers() {
     <PageMain>
       <PageTitle>Administração · Usuários</PageTitle>
       <PageSubtitle>Crie novos usuários e gerencie permissões de administrador.</PageSubtitle>
-
-      {error && <FormError>{error}</FormError>}
-      {notice && <Notice>{notice}</Notice>}
 
       <form className="mb-3" onSubmit={handleCreate}>
         <Card>

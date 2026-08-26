@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { supabase, PHOTOS_BUCKET } from '../lib/supabaseClient'
-import ItemCard from '../components/ItemCard'
+import { supabase, PHOTOS_BUCKET } from '@/lib/supabase-client'
+import ItemCard from '@/components/item-card'
 import {
   BottomNav,
   CenteredLoader,
@@ -9,9 +9,9 @@ import {
   PageMain,
   PageSubtitle,
   PageTitle
-} from '../components/PageShell'
+} from '@/components/page-shell'
 import { Button } from '@/components/ui/button'
-import type { ChecklistItem, ClosingSession, LogEntry } from '../types'
+import type { ChecklistItem, ClosingSession, LogEntry } from '@/types'
 
 interface SessionDetailRow extends ClosingSession {
   checklist_templates: { name: string } | null

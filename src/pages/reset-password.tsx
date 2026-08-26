@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { supabase } from '../lib/supabaseClient'
-import { Spinner } from '../components/Spinner'
+import { supabase } from '@/lib/supabase-client'
+import { Spinner } from '@/components/spinner'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { FormError, FormField, PageTitle } from '../components/PageShell'
+import { FormError, FormField, PageTitle } from '@/components/page-shell'
 
 export default function ResetPassword() {
   const navigate = useNavigate()
