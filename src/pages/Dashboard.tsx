@@ -2,18 +2,28 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../contexts/AuthContext'
+import type { ChecklistTemplate, ClosingSession } from '../types'
+
+interface ActiveSession extends ClosingSession {
+  checklist_templates?: { name: string } | null
+}
 
 export default function Dashboard() {
   const { user } = useAuth()
   const navigate = useNavigate()
-  const [templates, setTemplates] = useState([])
-  const [activeSession, setActiveSession] = useState(null)
+  const [templates, setTemplates] = useState<ChecklistTemplate[]>([])
+  const [activeSession, setActiveSession] = useState<ActiveSession | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [startingId, setStartingId] = useState(null)
+  const [startingId, setStartingId] = useState<string | null>(null)
+
+  if (!user) {
+    throw new Error('Dashboard requires an authenticated user')
+  }
 
   useEffect(() => {
     loadData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   async function loadData() {
@@ -29,8 +39,8 @@ export default function Dashboard() {
           .order('name'),
         supabase
           .from('closing_sessions')
-          .select('id, template_id, started_at')
-          .eq('user_id', user.id)
+          .select('id, template_id, status, started_at, completed_at')
+          .eq('user_id', user!.id)
           .eq('status', 'in_progress')
           .order('started_at', { ascending: false })
           .limit(1)
@@ -46,12 +56,12 @@ export default function Dashboard() {
     setLoading(false)
   }
 
-  async function startSession(templateId) {
+  async function startSession(templateId: string) {
     setStartingId(templateId)
     setError('')
     const { data, error: insertError } = await supabase
       .from('closing_sessions')
-      .insert({ template_id: templateId, user_id: user.id, status: 'in_progress' })
+      .insert({ template_id: templateId, user_id: user!.id, status: 'in_progress' })
       .select('id')
       .single()
 

@@ -3,12 +3,20 @@ import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../contexts/AuthContext'
 
-const STATUS_LABEL = {
+interface HistoryRow {
+  id: string
+  status: 'in_progress' | 'completed'
+  started_at: string
+  completed_at: string | null
+  checklist_templates: { name: string } | null
+}
+
+const STATUS_LABEL: Record<string, { text: string; className: string }> = {
   completed: { text: 'Concluído', className: 'badge-success' },
   in_progress: { text: 'Em andamento', className: 'badge-warning' }
 }
 
-function formatDate(iso) {
+function formatDate(iso: string): string {
   return new Date(iso).toLocaleString('pt-BR', {
     day: '2-digit',
     month: '2-digit',
@@ -21,12 +29,17 @@ function formatDate(iso) {
 export default function History() {
   const { user } = useAuth()
   const navigate = useNavigate()
-  const [sessions, setSessions] = useState([])
+  const [sessions, setSessions] = useState<HistoryRow[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
+  if (!user) {
+    throw new Error('History requires an authenticated user')
+  }
+
   useEffect(() => {
     load()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   async function load() {
@@ -34,14 +47,14 @@ export default function History() {
     const { data, error: fetchError } = await supabase
       .from('closing_sessions')
       .select('id, status, started_at, completed_at, checklist_templates(name)')
-      .eq('user_id', user.id)
+      .eq('user_id', user!.id)
       .order('started_at', { ascending: false })
       .limit(50)
 
     if (fetchError) {
       setError('Não foi possível carregar o histórico.')
     } else {
-      setSessions(data ?? [])
+      setSessions((data ?? []) as unknown as HistoryRow[])
     }
     setLoading(false)
   }

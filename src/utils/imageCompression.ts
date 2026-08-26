@@ -1,4 +1,4 @@
-import imageCompression from 'browser-image-compression'
+import imageCompression from "browser-image-compression";
 
 /**
  * Compresses a photo before it ever touches Supabase Storage.
@@ -13,18 +13,21 @@ import imageCompression from 'browser-image-compression'
  * (e.g. small status LEDs that are hard to read once compressed).
  */
 const COMPRESSION_OPTIONS = {
-  maxSizeMB: 0.2, // ~200 KB hard ceiling
-  maxWidthOrHeight: 1000,
-  useWebWorker: true,
-  fileType: 'image/jpeg',
-  initialQuality: 0.7
-}
+	maxSizeMB: 0.2, // ~200 KB hard ceiling
+	maxWidthOrHeight: 1000,
+	useWebWorker: true,
+	fileType: "image/jpeg" as const,
+	initialQuality: 0.5,
+};
 
-export async function compressPhoto(file) {
-  try {
-    return await imageCompression(file, COMPRESSION_OPTIONS)
-  } catch (err) {
-    console.error('Image compression failed, uploading original file instead.', err)
-    return file
-  }
+export async function compressPhoto(file: File): Promise<File> {
+	try {
+		return await imageCompression(file, COMPRESSION_OPTIONS);
+	} catch (err) {
+		console.error(
+			"Image compression failed, uploading original file instead.",
+			err,
+		);
+		return file;
+	}
 }

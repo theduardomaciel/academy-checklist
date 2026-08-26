@@ -2,20 +2,26 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { supabase, PHOTOS_BUCKET } from '../lib/supabaseClient'
 import ItemCard from '../components/ItemCard'
+import type { ChecklistItem, ClosingSession, LogEntry } from '../types'
+
+interface SessionDetailRow extends ClosingSession {
+  checklist_templates: { name: string } | null
+}
 
 const SIGNED_URL_TTL_SECONDS = 60 * 10 // 10 minutes is plenty for viewing this page
 
 export default function SessionDetail() {
-  const { sessionId } = useParams()
+  const { sessionId } = useParams<{ sessionId: string }>()
   const navigate = useNavigate()
-  const [session, setSession] = useState(null)
-  const [items, setItems] = useState([])
-  const [logsByItem, setLogsByItem] = useState({})
+  const [session, setSession] = useState<SessionDetailRow | null>(null)
+  const [items, setItems] = useState<ChecklistItem[]>([])
+  const [logsByItem, setLogsByItem] = useState<Record<string, LogEntry>>({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
   useEffect(() => {
     load()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId])
 
   async function load() {
@@ -25,7 +31,7 @@ export default function SessionDetail() {
     const { data: sessionData, error: sessionError } = await supabase
       .from('closing_sessions')
       .select('id, status, started_at, completed_at, template_id, checklist_templates(name)')
-      .eq('id', sessionId)
+      .eq('id', sessionId!)
       .single()
 
     if (sessionError || !sessionData) {
@@ -40,12 +46,12 @@ export default function SessionDetail() {
         .select('id, title, instructions, order_index, requires_photo')
         .eq('template_id', sessionData.template_id)
         .order('order_index'),
-      supabase.from('closing_logs').select('*').eq('session_id', sessionId)
+      supabase.from('closing_logs').select('*').eq('session_id', sessionId!)
     ])
 
-    const map = {}
+    const map: Record<string, LogEntry> = {}
     for (const log of logData ?? []) {
-      let previewUrl = null
+      let previewUrl: string | null = null
       if (log.photo_path) {
         const { data: signed } = await supabase.storage
           .from(PHOTOS_BUCKET)
@@ -55,7 +61,7 @@ export default function SessionDetail() {
       map[log.item_id] = { status: log.status, photo_path: log.photo_path, previewUrl }
     }
 
-    setSession(sessionData)
+    setSession(sessionData as unknown as SessionDetailRow)
     setItems(itemData ?? [])
     setLogsByItem(map)
     setLoading(false)
@@ -71,7 +77,7 @@ export default function SessionDetail() {
     )
   }
 
-  if (error) {
+  if (error || !session) {
     return (
       <main className="app-main">
         <div className="form-error">{error}</div>

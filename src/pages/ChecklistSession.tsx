@@ -3,17 +3,18 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { supabase, PHOTOS_BUCKET } from '../lib/supabaseClient'
 import ItemCard from '../components/ItemCard'
 import ProgressBar from '../components/ProgressBar'
+import type { ChecklistItem, ClosingSession, LogEntry } from '../types'
 
 export default function ChecklistSession() {
-  const { sessionId } = useParams()
+  const { sessionId } = useParams<{ sessionId: string }>()
   const navigate = useNavigate()
 
-  const [session, setSession] = useState(null)
-  const [items, setItems] = useState([])
-  const [logsByItem, setLogsByItem] = useState({}) // item_id -> { status, photo_path, previewUrl, pendingFile }
+  const [session, setSession] = useState<ClosingSession | null>(null)
+  const [items, setItems] = useState<ChecklistItem[]>([])
+  const [logsByItem, setLogsByItem] = useState<Record<string, LogEntry>>({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [savingItemId, setSavingItemId] = useState(null)
+  const [savingItemId, setSavingItemId] = useState<string | null>(null)
   const [finishing, setFinishing] = useState(false)
 
   const loadSession = useCallback(async () => {
@@ -22,8 +23,8 @@ export default function ChecklistSession() {
 
     const { data: sessionData, error: sessionError } = await supabase
       .from('closing_sessions')
-      .select('id, template_id, status, started_at')
-      .eq('id', sessionId)
+      .select('id, template_id, status, started_at, completed_at')
+      .eq('id', sessionId!)
       .single()
 
     if (sessionError || !sessionData) {
@@ -39,7 +40,7 @@ export default function ChecklistSession() {
           .select('id, title, instructions, order_index, requires_photo')
           .eq('template_id', sessionData.template_id)
           .order('order_index'),
-        supabase.from('closing_logs').select('*').eq('session_id', sessionId)
+        supabase.from('closing_logs').select('*').eq('session_id', sessionId!)
       ])
 
     if (itemError || logError) {
@@ -48,7 +49,7 @@ export default function ChecklistSession() {
       return
     }
 
-    const map = {}
+    const map: Record<string, LogEntry> = {}
     for (const log of logData ?? []) {
       map[log.item_id] = { status: log.status, photo_path: log.photo_path }
     }
@@ -68,7 +69,7 @@ export default function ChecklistSession() {
     [items, logsByItem]
   )
 
-  function handlePhotoSelected(itemId, file) {
+  function handlePhotoSelected(itemId: string, file: File) {
     const previewUrl = URL.createObjectURL(file)
     setLogsByItem((prev) => ({
       ...prev,
@@ -76,7 +77,8 @@ export default function ChecklistSession() {
     }))
   }
 
-  async function markItemDone(item) {
+  async function markItemDone(item: ChecklistItem) {
+    if (!session) return
     const entry = logsByItem[item.id]
     setSavingItemId(item.id)
     setError('')
@@ -98,7 +100,7 @@ export default function ChecklistSession() {
         {
           session_id: session.id,
           item_id: item.id,
-          status: 'done',
+          status: 'done' as const,
           photo_path: photoPath,
           completed_at: new Date().toISOString()
         },
@@ -119,14 +121,15 @@ export default function ChecklistSession() {
     }
   }
 
-  async function skipItem(item) {
+  async function skipItem(item: ChecklistItem) {
+    if (!session) return
     setSavingItemId(item.id)
     setError('')
     const { error: upsertError } = await supabase.from('closing_logs').upsert(
       {
         session_id: session.id,
         item_id: item.id,
-        status: 'skipped',
+        status: 'skipped' as const,
         completed_at: new Date().toISOString()
       },
       { onConflict: 'session_id,item_id' }
@@ -140,6 +143,7 @@ export default function ChecklistSession() {
   }
 
   async function finishSession() {
+    if (!session) return
     setFinishing(true)
     setError('')
     const { error: updateError } = await supabase
@@ -165,7 +169,7 @@ export default function ChecklistSession() {
     )
   }
 
-  if (error && !session) {
+  if ((error && !session) || !session) {
     return (
       <main className="app-main">
         <div className="form-error">{error}</div>

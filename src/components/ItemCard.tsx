@@ -1,4 +1,17 @@
 import CameraCapture from './CameraCapture'
+import type { ChecklistItem, ItemStatus } from '../types'
+
+interface ItemCardProps {
+  index: number
+  item: ChecklistItem
+  photoUrl?: string | null
+  status?: ItemStatus
+  onPhotoSelected?: (file: File) => void
+  onMarkDone?: () => void
+  onSkip?: () => void
+  readOnly?: boolean
+  saving?: boolean
+}
 
 export default function ItemCard({
   index,
@@ -10,7 +23,7 @@ export default function ItemCard({
   onSkip,
   readOnly,
   saving
-}) {
+}: ItemCardProps) {
   const isDone = status === 'done'
 
   return (
@@ -39,7 +52,7 @@ export default function ItemCard({
         ) : (
           <CameraCapture
             photoUrl={photoUrl}
-            onPhotoSelected={onPhotoSelected}
+            onPhotoSelected={(file) => onPhotoSelected?.(file)}
             disabled={isDone}
           />
         ))}

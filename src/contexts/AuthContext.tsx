@@ -1,10 +1,24 @@
 import { createContext, useContext, useEffect, useState } from 'react'
+import type { ReactNode } from 'react'
+import type { Session } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabaseClient'
 
-const AuthContext = createContext(null)
+interface AuthContextValue {
+  session: Session | null | undefined
+  user: Session['user'] | null
+  loading: boolean
+  signInWithPassword: (
+    email: string,
+    password: string
+  ) => ReturnType<typeof supabase.auth.signInWithPassword>
+  signOut: () => ReturnType<typeof supabase.auth.signOut>
+  resetPasswordForEmail: (email: string) => ReturnType<typeof supabase.auth.resetPasswordForEmail>
+}
 
-export function AuthProvider({ children }) {
-  const [session, setSession] = useState(undefined) // undefined = loading, null = signed out
+const AuthContext = createContext<AuthContextValue | null>(null)
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [session, setSession] = useState<Session | null | undefined>(undefined) // undefined = loading, null = signed out
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -18,7 +32,7 @@ export function AuthProvider({ children }) {
     return () => listener.subscription.unsubscribe()
   }, [])
 
-  const value = {
+  const value: AuthContextValue = {
     session,
     user: session?.user ?? null,
     loading: session === undefined,
@@ -34,7 +48,7 @@ export function AuthProvider({ children }) {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
-export function useAuth() {
+export function useAuth(): AuthContextValue {
   const ctx = useContext(AuthContext)
   if (!ctx) throw new Error('useAuth must be used within AuthProvider')
   return ctx

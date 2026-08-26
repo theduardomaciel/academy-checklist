@@ -1,16 +1,25 @@
 import { createContext, useContext, useEffect, useState } from 'react'
+import type { ReactNode } from 'react'
 
-const ThemeContext = createContext(null)
+type Theme = 'light' | 'dark'
+
+interface ThemeContextValue {
+  theme: Theme
+  toggleTheme: () => void
+  setTheme: (theme: Theme) => void
+}
+
+const ThemeContext = createContext<ThemeContextValue | null>(null)
 const STORAGE_KEY = 'edge-academy-theme'
 
-function getInitialTheme() {
+function getInitialTheme(): Theme {
   const stored = window.localStorage.getItem(STORAGE_KEY)
   if (stored === 'light' || stored === 'dark') return stored
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 }
 
-export function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState(getInitialTheme)
+export function ThemeProvider({ children }: { children: ReactNode }) {
+  const [theme, setTheme] = useState<Theme>(getInitialTheme)
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
@@ -26,7 +35,7 @@ export function ThemeProvider({ children }) {
   )
 }
 
-export function useTheme() {
+export function useTheme(): ThemeContextValue {
   const ctx = useContext(ThemeContext)
   if (!ctx) throw new Error('useTheme must be used within ThemeProvider')
   return ctx
