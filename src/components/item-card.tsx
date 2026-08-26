@@ -61,8 +61,7 @@ export default function ItemCard({
 				)}
 			</CardHeader>
 
-			{item.requires_photo ||
-				(!readOnly && (
+		{(item.requires_photo || !readOnly) && (
 					<CardContent>
 						{item.requires_photo &&
 							(readOnly ? (
@@ -115,8 +114,8 @@ export default function ItemCard({
 								)}
 							</div>
 						)}
-					</CardContent>
-				))}
+				</CardContent>
+			)}
 		</Card>
 	);
 }
