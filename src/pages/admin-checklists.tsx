@@ -51,6 +51,8 @@ import {
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import type { AdminChecklistTemplate, ChecklistItem } from "@/types";
+import { Camera, Edit, Pin, Power, PowerOff, Trash } from "lucide-react";
+import { cn } from "#lib/utils";
 
 interface TemplateWithItems extends AdminChecklistTemplate {
 	checklist_items: ChecklistItem[];
@@ -234,8 +236,7 @@ export default function AdminChecklists() {
 											i.id === editingItemId
 												? {
 														...i,
-														title:
-															itemForm.title.trim(),
+														title: itemForm.title.trim(),
 														location:
 															itemForm.location.trim() ||
 															null,
@@ -321,11 +322,7 @@ export default function AdminChecklists() {
 		toast.success("Item removido.");
 	}
 
-	async function handleReorder(
-		templateId: string,
-		from: number,
-		to: number,
-	) {
+	async function handleReorder(templateId: string, from: number, to: number) {
 		const template = templates.find((t) => t.id === templateId);
 		if (!template || from === to) return;
 
@@ -341,11 +338,17 @@ export default function AdminChecklists() {
 			),
 		);
 
-		const updates = withOrder.map((item, i) => ({ id: item.id, order_index: i + 1 }));
+		const updates = withOrder.map((item, i) => ({
+			id: item.id,
+			order_index: i + 1,
+		}));
 
 		const results = await Promise.all(
 			updates.map((u) =>
-				supabase.from("checklist_items").update({ order_index: u.order_index }).eq("id", u.id),
+				supabase
+					.from("checklist_items")
+					.update({ order_index: u.order_index })
+					.eq("id", u.id),
 			),
 		);
 		const updateError = results.find((r) => r.error)?.error ?? null;
@@ -365,7 +368,8 @@ export default function AdminChecklists() {
 		setItemForm(emptyItemForm);
 	}
 
-	function openEditItemDialog(item: ChecklistItem) {
+	function openEditItemDialog(templateId: string, item: ChecklistItem) {
+		setItemTemplateId(templateId);
 		setEditingItemId(item.id);
 		setItemForm({
 			title: item.title,
@@ -453,7 +457,7 @@ export default function AdminChecklists() {
 			) : (
 				templates.map((t) => (
 					<Card key={t.id} className="mb-3 shadow-sm">
-						<CardContent className="gap-2">
+						<CardContent className="gap-4">
 							<div className="flex items-start justify-between gap-3">
 								<div>
 									<p className="m-0 mb-1 flex items-center gap-2 font-bold">
@@ -478,25 +482,26 @@ export default function AdminChecklists() {
 											setEditingTemplate(t);
 											setTemplateForm({
 												name: t.name,
-												description: t.description ?? "",
+												description:
+													t.description ?? "",
 											});
 										}}
 									>
-										Editar
+										<Edit />
 									</Button>
 									<Button
 										variant="outline"
 										size="sm"
 										onClick={() => toggleActive(t)}
 									>
-										{t.is_active ? "Desativar" : "Ativar"}
+										{t.is_active ? <Power /> : <PowerOff />}
 									</Button>
 									<Button
 										variant="destructive"
 										size="sm"
 										onClick={() => setDeleteTarget(t)}
 									>
-										Excluir
+										<Trash />
 									</Button>
 								</div>
 							</div>
@@ -689,9 +694,9 @@ export default function AdminChecklists() {
 					<AlertDialogHeader>
 						<AlertDialogTitle>Excluir checklist?</AlertDialogTitle>
 						<AlertDialogDescription>
-							O checklist &quot;{deleteTarget?.name}&quot; e todos os seus
-							itens serão excluídos permanentemente. Esta ação não
-							pode ser desfeita.
+							O checklist &quot;{deleteTarget?.name}&quot; e todos
+							os seus itens serão excluídos permanentemente. Esta
+							ação não pode ser desfeita.
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>
@@ -816,9 +821,12 @@ function SortableRow({
 				zIndex: isDragging ? 10 : undefined,
 				position: isDragging ? "relative" : undefined,
 			}}
-			className={`mb-1.5 flex items-center rounded ${
-				isDragging ? "bg-muted opacity-80" : ""
-			}`}
+			className={cn(
+				`not-last:mb-1.5 gap-4 flex items-center rounded-md border p-4 border-muted`,
+				{
+					"bg-muted opacity-80": isDragging,
+				},
+			)}
 		>
 			<button
 				type="button"
@@ -830,17 +838,22 @@ function SortableRow({
 			>
 				⠿
 			</button>
-			<span>{item.title}</span>
-			{item.location && (
-				<Badge variant="outline" className="ml-2">
-					📍 {item.location}
-				</Badge>
-			)}
-			{item.requires_photo && (
-				<Badge variant="outline" className="ml-2">
-					📷 Foto
-				</Badge>
-			)}
+			<div className="flex-1 flex flex-col gap-2">
+				{item.title}
+				<div className="flex flex-row items-center justify-start gap-2">
+					{item.location && (
+						<Badge variant="outline">
+							{" "}
+							<Pin /> {item.location}
+						</Badge>
+					)}
+					{item.requires_photo && (
+						<Badge variant="outline">
+							<Camera /> Foto
+						</Badge>
+					)}
+				</div>
+			</div>
 			<button
 				type="button"
 				className="ml-1 cursor-pointer bg-transparent p-1 text-muted-foreground hover:text-foreground"
