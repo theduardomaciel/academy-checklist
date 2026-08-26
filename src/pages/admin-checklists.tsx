@@ -79,8 +79,17 @@ export default function AdminChecklists() {
 	const [creating, setCreating] = useState(false);
 
 	const [itemTemplateId, setItemTemplateId] = useState<string | null>(null);
+	const [editingItemId, setEditingItemId] = useState<string | null>(null);
 	const [itemForm, setItemForm] = useState<ItemFormState>(emptyItemForm);
 	const [savingItem, setSavingItem] = useState(false);
+
+	const [editingTemplate, setEditingTemplate] =
+		useState<TemplateWithItems | null>(null);
+	const [templateForm, setTemplateForm] = useState({
+		name: "",
+		description: "",
+	});
+	const [savingTemplate, setSavingTemplate] = useState(false);
 
 	const [deleteTarget, setDeleteTarget] = useState<TemplateWithItems | null>(
 		null,
@@ -104,6 +113,7 @@ export default function AdminChecklists() {
 			});
 
 		if (templatesResult.error) {
+			console.error("load:", templatesResult.error.message);
 			toast.error("Não foi possível carregar os checklists.");
 		} else {
 			setTemplates(
@@ -128,6 +138,7 @@ export default function AdminChecklists() {
 			.single();
 
 		if (insertError) {
+			console.error("handleCreateTemplate:", insertError.message);
 			toast.error("Não foi possível criar o checklist.");
 		} else {
 			const template = data as AdminChecklistTemplate;
@@ -151,6 +162,7 @@ export default function AdminChecklists() {
 			.eq("id", template.id);
 
 		if (updateError) {
+			console.error("toggleActive:", updateError.message);
 			toast.error("Não foi possível atualizar o checklist.");
 			return;
 		}
@@ -176,7 +188,7 @@ export default function AdminChecklists() {
 			.eq("id", deleteTarget.id);
 
 		if (deleteError) {
-			console.error(deleteError.message);
+			console.error("handleDeleteTemplate:", deleteError.message);
 			toast.error("Não foi possível excluir o checklist.");
 		} else {
 			setTemplates((prev) =>
@@ -196,6 +208,56 @@ export default function AdminChecklists() {
 		if (!template) return;
 
 		setSavingItem(true);
+
+		if (editingItemId) {
+			const { error: updateError } = await supabase
+				.from("checklist_items")
+				.update({
+					title: itemForm.title.trim(),
+					location: itemForm.location.trim() || null,
+					instructions: itemForm.instructions.trim() || null,
+					requires_photo: itemForm.requiresPhoto,
+				})
+				.eq("id", editingItemId);
+
+			if (updateError) {
+				console.error("handleAddItem (update):", updateError.message);
+				toast.error("Não foi possível salvar o item.");
+			} else {
+				setTemplates((prev) =>
+					prev.map((t) =>
+						t.id === itemTemplateId
+							? {
+									...t,
+									checklist_items: t.checklist_items.map(
+										(i) =>
+											i.id === editingItemId
+												? {
+														...i,
+														title:
+															itemForm.title.trim(),
+														location:
+															itemForm.location.trim() ||
+															null,
+														instructions:
+															itemForm.instructions.trim() ||
+															null,
+														requires_photo:
+															itemForm.requiresPhoto,
+													}
+												: i,
+									),
+								}
+							: t,
+					),
+				);
+				toast.success("Item atualizado.");
+				closeItemDialog();
+			}
+			setSavingItem(false);
+			return;
+		}
+
 		const nextOrder = template.checklist_items.length + 1;
 		const { data, error: insertError } = await supabase
 			.from("checklist_items")
@@ -211,6 +273,7 @@ export default function AdminChecklists() {
 			.single();
 
 		if (insertError) {
+			console.error("handleAddItem:", insertError.message);
 			toast.error("Não foi possível adicionar o item.");
 		} else {
 			setTemplates((prev) =>
@@ -239,6 +302,7 @@ export default function AdminChecklists() {
 			.eq("id", itemId);
 
 		if (deleteError) {
+			console.error("removeItem:", deleteError.message);
 			toast.error("Não foi possível remover o item.");
 			return;
 		}
@@ -277,16 +341,17 @@ export default function AdminChecklists() {
 			),
 		);
 
-		const { error: updateError } = await supabase
-			.from("checklist_items")
-			.upsert(
-				withOrder.map((item, i) => ({
-					id: item.id,
-					order_index: i + 1,
-				})),
-			);
+		const updates = withOrder.map((item, i) => ({ id: item.id, order_index: i + 1 }));
+
+		const results = await Promise.all(
+			updates.map((u) =>
+				supabase.from("checklist_items").update({ order_index: u.order_index }).eq("id", u.id),
+			),
+		);
+		const updateError = results.find((r) => r.error)?.error ?? null;
 
 		if (updateError) {
+			console.error("handleReorder:", updateError.message);
 			toast.error("Não foi possível salvar a nova ordem.");
 			load();
 			return;
@@ -296,7 +361,53 @@ export default function AdminChecklists() {
 
 	function closeItemDialog() {
 		setItemTemplateId(null);
+		setEditingItemId(null);
 		setItemForm(emptyItemForm);
+	}
+
+	function openEditItemDialog(item: ChecklistItem) {
+		setEditingItemId(item.id);
+		setItemForm({
+			title: item.title,
+			location: item.location ?? "",
+			instructions: item.instructions ?? "",
+			requiresPhoto: item.requires_photo,
+		});
+	}
+
+	async function handleSaveTemplate(e: React.FormEvent) {
+		e.preventDefault();
+		if (!editingTemplate || !templateForm.name.trim()) return;
+
+		setSavingTemplate(true);
+		const { error: updateError } = await supabase
+			.from("checklist_templates")
+			.update({
+				name: templateForm.name.trim(),
+				description: templateForm.description.trim() || null,
+			})
+			.eq("id", editingTemplate.id);
+
+		if (updateError) {
+			console.error("handleSaveTemplate:", updateError.message);
+			toast.error("Não foi possível salvar o checklist.");
+		} else {
+			setTemplates((prev) =>
+				prev.map((t) =>
+					t.id === editingTemplate.id
+						? {
+								...t,
+								name: templateForm.name.trim(),
+								description:
+									templateForm.description.trim() || null,
+							}
+						: t,
+				),
+			);
+			toast.success("Checklist atualizado.");
+			setEditingTemplate(null);
+		}
+		setSavingTemplate(false);
 	}
 
 	return (
@@ -363,6 +474,19 @@ export default function AdminChecklists() {
 									<Button
 										variant="outline"
 										size="sm"
+										onClick={() => {
+											setEditingTemplate(t);
+											setTemplateForm({
+												name: t.name,
+												description: t.description ?? "",
+											});
+										}}
+									>
+										Editar
+									</Button>
+									<Button
+										variant="outline"
+										size="sm"
 										onClick={() => toggleActive(t)}
 									>
 										{t.is_active ? "Desativar" : "Ativar"}
@@ -383,6 +507,7 @@ export default function AdminChecklists() {
 								onRemoveItem={(itemId) =>
 									removeItem(t.id, itemId)
 								}
+								onEditItem={openEditItemDialog}
 							/>
 
 							<div>
@@ -405,7 +530,9 @@ export default function AdminChecklists() {
 			>
 				<DialogContent>
 					<DialogHeader>
-						<DialogTitle>Adicionar item</DialogTitle>
+						<DialogTitle>
+							{editingItemId ? "Editar item" : "Adicionar item"}
+						</DialogTitle>
 						<DialogDescription>
 							{
 								templates.find((t) => t.id === itemTemplateId)
@@ -415,7 +542,11 @@ export default function AdminChecklists() {
 					</DialogHeader>
 					<form className="grid gap-4" onSubmit={handleAddItem}>
 						<FormField
-							label={`Título do item ${nextOrderFor(itemTemplateId, templates)}`}
+							label={
+								editingItemId
+									? "Título do item"
+									: `Título do item ${nextOrderFor(itemTemplateId, templates)}`
+							}
 						>
 							<Input
 								type="text"
@@ -481,7 +612,69 @@ export default function AdminChecklists() {
 								Cancelar
 							</Button>
 							<Button type="submit" disabled={savingItem}>
-								{savingItem ? "Adicionando…" : "Adicionar item"}
+								{savingItem
+									? editingItemId
+										? "Salvando…"
+										: "Adicionando…"
+									: editingItemId
+										? "Salvar"
+										: "Adicionar item"}
+							</Button>
+						</DialogFooter>
+					</form>
+				</DialogContent>
+			</Dialog>
+
+			<Dialog
+				open={editingTemplate !== null}
+				onOpenChange={(open) => !open && setEditingTemplate(null)}
+			>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>Editar checklist</DialogTitle>
+						<DialogDescription>
+							Altere o nome e a descrição do checklist.
+						</DialogDescription>
+					</DialogHeader>
+					<form className="grid gap-4" onSubmit={handleSaveTemplate}>
+						<FormField label="Nome do checklist">
+							<Input
+								type="text"
+								value={templateForm.name}
+								onChange={(e) =>
+									setTemplateForm((f) => ({
+										...f,
+										name: e.target.value,
+									}))
+								}
+								placeholder="Fechamento da sala X"
+								autoFocus
+								required
+							/>
+						</FormField>
+						<FormField label="Descrição">
+							<Input
+								type="text"
+								value={templateForm.description}
+								onChange={(e) =>
+									setTemplateForm((f) => ({
+										...f,
+										description: e.target.value,
+									}))
+								}
+								placeholder="Opcional"
+							/>
+						</FormField>
+						<DialogFooter>
+							<Button
+								type="button"
+								variant="outline"
+								onClick={() => setEditingTemplate(null)}
+							>
+								Cancelar
+							</Button>
+							<Button type="submit" disabled={savingTemplate}>
+								{savingTemplate ? "Salvando…" : "Salvar"}
 							</Button>
 						</DialogFooter>
 					</form>
@@ -546,10 +739,12 @@ function TemplateItems({
 	template,
 	onReorder,
 	onRemoveItem,
+	onEditItem,
 }: {
 	template: TemplateWithItems;
 	onReorder: (templateId: string, from: number, to: number) => void;
 	onRemoveItem: (itemId: string) => void;
+	onEditItem: (item: ChecklistItem) => void;
 }) {
 	const sensors = useSensors(
 		useSensor(PointerSensor, {
@@ -585,6 +780,7 @@ function TemplateItems({
 							key={item.id}
 							item={item}
 							onDelete={() => onRemoveItem(item.id)}
+							onEdit={() => onEditItem(item)}
 						/>
 					))}
 				</ol>
@@ -596,9 +792,11 @@ function TemplateItems({
 function SortableRow({
 	item,
 	onDelete,
+	onEdit,
 }: {
 	item: ChecklistItem;
 	onDelete: () => void;
+	onEdit: () => void;
 }) {
 	const {
 		attributes,
@@ -643,6 +841,15 @@ function SortableRow({
 					📷 Foto
 				</Badge>
 			)}
+			<button
+				type="button"
+				className="ml-1 cursor-pointer bg-transparent p-1 text-muted-foreground hover:text-foreground"
+				title="Editar item"
+				aria-label={`Editar ${item.title}`}
+				onClick={onEdit}
+			>
+				✎
+			</button>
 			<button
 				type="button"
 				className="ml-1 cursor-pointer bg-transparent p-1 text-muted-foreground hover:text-destructive"
