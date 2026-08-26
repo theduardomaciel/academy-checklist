@@ -15,6 +15,13 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select'
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -24,7 +31,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from '@/components/ui/alert-dialog'
-import type { AdminUser } from '@/types'
+import { USER_ROLES, type AdminUser } from '@/types'
 
 export default function AdminUsers() {
   const [users, setUsers] = useState<AdminUser[]>([])
@@ -145,6 +152,19 @@ export default function AdminUsers() {
     )
   }
 
+  async function setUserRole(target: AdminUser, role: string | null) {
+    const { error: rpcError } = await supabase.rpc('set_user_role', {
+      target_uid: target.id,
+      new_role: role
+    })
+    if (rpcError) {
+      toast.error(rpcError.message)
+      return
+    }
+    setUsers((prev) => (prev.map((u) => (u.id === target.id ? { ...u, role } : u))))
+    toast.success(`Cargo de ${target.full_name ?? target.email} atualizado.`)
+  }
+
   return (
     <PageMain>
       <PageTitle>Administração · Usuários</PageTitle>
@@ -196,21 +216,44 @@ export default function AdminUsers() {
                 <p className="m-0 mb-1 font-bold">{u.full_name ?? u.email ?? 'Usuário'}</p>
                 <p className="m-0 text-[13px] text-muted-foreground">{u.email}</p>
               </div>
-              <div className="flex items-center gap-2">
-                {u.is_admin && <Badge className="bg-success-bg text-success">Admin</Badge>}
-                {!u.is_admin && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-destructive"
-                    onClick={() => setDeleteTarget(u)}
-                  >
-                    Remover usuário
+              <div className="flex flex-col items-end gap-2">
+                <div className="flex items-center gap-2">
+                  {u.is_admin && <Badge className="bg-success-bg text-success">Admin</Badge>}
+                  {!u.is_admin && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-destructive"
+                      onClick={() => setDeleteTarget(u)}
+                    >
+                      Remover usuário
+                    </Button>
+                  )}
+                  <Button variant="outline" size="sm" onClick={() => toggleAdmin(u)}>
+                    {u.is_admin ? 'Remover admin' : 'Tornar admin'}
                   </Button>
-                )}
-                <Button variant="outline" size="sm" onClick={() => toggleAdmin(u)}>
-                  {u.is_admin ? 'Remover admin' : 'Tornar admin'}
-                </Button>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[13px] text-muted-foreground">Cargo</span>
+                  <Select
+                    value={(u.role as string) ?? 'Sem cargo'}
+                    onValueChange={(val: string | null) =>
+                      setUserRole(u, val === 'Sem cargo' || val === null ? null : val)
+                    }
+                  >
+                    <SelectTrigger size="sm" aria-label="Cargo">
+                      <SelectValue placeholder="Cargo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Sem cargo">Sem cargo</SelectItem>
+                      {USER_ROLES.map((role) => (
+                        <SelectItem key={role} value={role}>
+                          {role}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </CardContent>
           </Card>

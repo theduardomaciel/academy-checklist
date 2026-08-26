@@ -5,8 +5,11 @@ export interface AdminUser {
   email: string | null
   full_name: string | null
   is_admin: boolean
+  role: string | null
   created_at: string
 }
+
+export const USER_ROLES = ['Prefeito', 'Bolsista', 'Gerente'] as const
 
 /** ChecklistTemplate with admin-only fields (full row from the DB). */
 export interface AdminChecklistTemplate {

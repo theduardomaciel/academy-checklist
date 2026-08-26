@@ -23,10 +23,19 @@ create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   full_name text,
   is_admin boolean not null default false,
+  role text,
   created_at timestamptz not null default now()
 );
 
 alter table public.profiles enable row level security;
+
+-- Job role (not a permission). Only admins may change it.
+-- Added via ALTER (not only CREATE TABLE) so re-running on an existing
+-- database actually creates the column.
+alter table public.profiles add column if not exists role text;
+alter table public.profiles drop constraint if exists profiles_role_check;
+alter table public.profiles add constraint profiles_role_check
+  check (role is null or role in ('Prefeito', 'Bolsista', 'Gerente'));
 
 -- ----------------------------------------------------------------------------
 -- 2. is_admin() helper
@@ -127,12 +136,14 @@ create policy "logs_admin_read_all"
 -- 5. Admin RPCs (client cannot query auth.users directly)
 -- ----------------------------------------------------------------------------
 
+drop function if exists public.list_users();
 create or replace function public.list_users()
 returns table (
   id uuid,
   email text,
   full_name text,
   is_admin boolean,
+  role text,
   created_at timestamptz
 )
 language sql
@@ -140,7 +151,7 @@ volatile
 security definer set search_path = public
 as $$
   select u.id, u.email,
-         p.full_name, p.is_admin,
+         p.full_name, p.is_admin, p.role,
          u.created_at
   from auth.users u
   join public.profiles p on p.id = u.id
@@ -172,3 +183,31 @@ $$;
 
 revoke all on function public.set_user_admin(uuid, boolean) from public;
 grant execute on function public.set_user_admin(uuid, boolean) to authenticated;
+
+-- ----------------------------------------------------------------------------
+-- 6. Job role (not a permission) — only admins may update it.
+-- ----------------------------------------------------------------------------
+
+create or replace function public.set_user_role(target_uid uuid, new_role text)
+returns void
+language plpgsql
+security definer set search_path = public
+as $$
+begin
+  if not public.is_admin() then
+    raise exception 'Apenas administradores podem alterar o cargo.';
+  end if;
+
+  if new_role is not null and new_role not in ('Prefeito', 'Bolsista', 'Gerente') then
+    raise exception 'Cargo inválido.';
+  end if;
+
+  update public.profiles set role = new_role where id = target_uid;
+  if not found then
+    raise exception 'Usuário não encontrado.';
+  end if;
+end;
+$$;
+
+revoke all on function public.set_user_role(uuid, text) from public;
+grant execute on function public.set_user_role(uuid, text) to authenticated;

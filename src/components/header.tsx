@@ -1,5 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
-import { LogOut, Settings } from "lucide-react";
+import { LogOut, Settings, UserRound } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import { Button } from "@/components/ui/button";
 import ThemeToggle from "./theme-toggle";
@@ -29,6 +29,16 @@ export default function Header() {
 				</span>
 			</Link>
 			<div className="flex items-center gap-2">
+				<Button
+					variant="ghost"
+					size="icon-sm"
+					className="text-inherit hover:bg-white/15 hover:text-inherit"
+					onClick={() => navigate("/configuracoes")}
+					title="Configurações"
+					aria-label="Configurações"
+				>
+					<UserRound />
+				</Button>
 				{isAdmin && (
 					<Button
 						variant="ghost"

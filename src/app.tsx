@@ -11,6 +11,7 @@ import History from './pages/history'
 import SessionDetail from './pages/session-detail'
 import AdminUsers from './pages/admin-users'
 import AdminChecklists from './pages/admin-checklists'
+import Settings from './pages/settings'
 
 function FullScreenLoader() {
   return (
@@ -93,6 +94,14 @@ export default function App() {
             <AdminRoute>
               <AdminChecklists />
             </AdminRoute>
+          }
+        />
+        <Route
+          path="/configuracoes"
+          element={
+            <ProtectedRoute>
+              <Settings />
+            </ProtectedRoute>
           }
         />
         <Route path="*" element={<Navigate to="/" replace />} />
