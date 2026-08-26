@@ -252,27 +252,29 @@ export default function AdminUsers() {
 			) : (
 				users.map((u) => (
 					<Card key={u.id} className="mb-3 shadow-sm">
-						<CardContent className="flex-row items-center justify-between gap-3">
-							<div>
-								<p className="m-0 mb-1 font-bold">
-									{u.full_name ?? u.email ?? "Usuário"}
-								</p>
-								<p className="m-0 text-[13px] text-muted-foreground">
-									{u.email}
-								</p>
+						<CardContent className="flex-col md:flex-row items-start justify-between gap-3">
+							<div className="flex-row md:flex-col flex items-center md:items-start gap-2 justify-between w-full">
+								<div className="w-full overflow-hidden">
+									<p className="m-0 mb-1 font-bold truncate">
+										{u.full_name ?? u.email ?? "Usuário"}
+									</p>
+									<p className="m-0 text-[13px] text-muted-foreground truncate">
+										{u.email}
+									</p>
+								</div>
+								{u.is_admin && (
+									<Badge className="bg-success-bg text-success h-6">
+										Admin
+									</Badge>
+								)}
 							</div>
-							<div className="flex flex-col items-end gap-2">
-								<div className="flex items-center gap-2">
-									{u.is_admin && (
-										<Badge className="bg-success-bg text-success">
-											Admin
-										</Badge>
-									)}
+							<div className="flex flex-col max-sm:w-full items-end gap-2">
+								<div className="flex items-center gap-2 max-sm:w-full">
 									{!u.is_admin && (
 										<Button
 											variant="outline"
 											size="sm"
-											className="text-destructive"
+											className="text-destructive flex-1"
 											onClick={() => setDeleteTarget(u)}
 										>
 											<Trash />
@@ -282,6 +284,7 @@ export default function AdminUsers() {
 										variant="outline"
 										size="sm"
 										onClick={() => toggleAdmin(u)}
+										className={"flex-1"}
 									>
 										{u.is_admin ? (
 											<>
@@ -294,7 +297,7 @@ export default function AdminUsers() {
 										)}
 									</Button>
 								</div>
-								<div className="flex items-center gap-2">
+								<div className="flex items-center gap-4 md:gap-2 max-sm:w-full">
 									<span className="text-[13px] text-muted-foreground">
 										Cargo
 									</span>
@@ -315,6 +318,7 @@ export default function AdminUsers() {
 										<SelectTrigger
 											size="sm"
 											aria-label="Cargo"
+											className={"flex-1"}
 										>
 											<SelectValue placeholder="Cargo" />
 										</SelectTrigger>

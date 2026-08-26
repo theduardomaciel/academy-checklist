@@ -458,7 +458,7 @@ export default function AdminChecklists() {
 				templates.map((t) => (
 					<Card key={t.id} className="mb-3 shadow-sm">
 						<CardContent className="gap-4">
-							<div className="flex items-start justify-between gap-3">
+							<div className="flex flex-wrap items-start justify-between gap-3">
 								<div>
 									<p className="m-0 mb-1 flex items-center gap-2 font-bold">
 										{t.name}
@@ -824,45 +824,51 @@ function SortableRow({
 				position: isDragging ? "relative" : undefined,
 			}}
 			className={cn(
-				`not-last:mb-1.5 gap-4 flex items-center rounded-md border p-4 border-muted`,
+				`not-last:mb-1.5 gap-4 flex flex-wrap items-center rounded-md border p-4 border-muted`,
 				{
 					"bg-muted opacity-80": isDragging,
 				},
 			)}
 		>
-			<button
-				type="button"
-				className="cursor-grab touch-none bg-transparent px-1 text-muted-foreground hover:text-foreground active:cursor-grabbing"
-				title="Arraste para reordenar"
-				aria-label={`Reordenar ${item.title}`}
-				{...attributes}
-				{...listeners}
-			>
-				⠿
-			</button>
-			<div className="flex-1 flex flex-col gap-2">
-				{item.title}
-				<div className="flex flex-row items-center justify-start gap-2">
-					{item.location && (
-						<Badge variant="outline">
-							<MapPin /> {item.location}
-						</Badge>
-					)}
-					{item.requires_photo && (
-						<Badge variant="outline">
-							<Camera /> Foto
-						</Badge>
-					)}
+			<div className="flex flex-row w-full items-center gap-4">
+				<button
+					type="button"
+					className="cursor-grab touch-none bg-transparent px-1 text-muted-foreground hover:text-foreground active:cursor-grabbing"
+					title="Arraste para reordenar"
+					aria-label={`Reordenar ${item.title}`}
+					{...attributes}
+					{...listeners}
+				>
+					⠿
+				</button>
+				<div className="flex-1 flex flex-col min-w-0 gap-2">
+					{item.title}
+					<div className="flex flex-row flex-wrap items-center justify-start gap-2">
+						{item.location && (
+							<Badge variant="outline" className="max-w-full">
+								<MapPin />{" "}
+								<span className="truncate">
+									{item.location}
+								</span>
+							</Badge>
+						)}
+						{item.requires_photo && (
+							<Badge variant="outline">
+								<Camera />{" "}
+								<span className="truncate">Foto</span>
+							</Badge>
+						)}
+					</div>
 				</div>
 			</div>
 			<button
 				type="button"
-				className="ml-1 cursor-pointer bg-transparent p-1 text-muted-foreground hover:text-foreground"
+				className="md:ml-1 cursor-pointer bg-transparent p-1 text-muted-foreground hover:text-foreground"
 				title="Editar item"
 				aria-label={`Editar ${item.title}`}
 				onClick={onEdit}
 			>
-				✎
+				✎ <span className="md:hidden">Editar</span>
 			</button>
 			<button
 				type="button"
@@ -871,7 +877,7 @@ function SortableRow({
 				aria-label={`Remover ${item.title}`}
 				onClick={onDelete}
 			>
-				✕
+				✕ <span className="md:hidden">Remover</span>
 			</button>
 		</li>
 	);
