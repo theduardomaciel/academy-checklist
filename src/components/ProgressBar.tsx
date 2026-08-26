@@ -8,7 +8,7 @@ export default function ProgressBar({ completed, total }: ProgressBarProps) {
 
   return (
     <div>
-      <div className="mb-2 flex justify-between text-[13px] text-text-muted">
+      <div className="mb-2 flex justify-between text-[13px] text-muted-foreground">
         <span>
           {completed} de {total} itens
         </span>
@@ -16,7 +16,7 @@ export default function ProgressBar({ completed, total }: ProgressBarProps) {
       </div>
       <div className="h-2 overflow-hidden rounded-full bg-border">
         <div
-          className="h-full rounded-full bg-accent transition-[width] duration-250"
+          className="h-full rounded-full bg-brand-cyan transition-[width] duration-250"
           style={{ width: `${pct}%` }}
         />
       </div>

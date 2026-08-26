@@ -1,19 +1,20 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
-import Spinner from '../components/Spinner'
 import {
-  APP_MAIN,
-  BTN_PRIMARY_BLOCK,
-  BTN_SECONDARY,
-  CARD,
-  FIELD_LABEL,
-  FORM_ERROR,
-  INPUT,
-  LIST_NAV,
-  PAGE_SUBTITLE,
-  PAGE_TITLE
-} from '../lib/ui'
+  BottomNav,
+  CenteredLoader,
+  FormError,
+  FormField,
+  Notice,
+  PageMain,
+  PageSubtitle,
+  PageTitle
+} from '../components/PageShell'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
 import type { AdminUser } from '../types'
 
 export default function AdminUsers() {
@@ -104,90 +105,78 @@ export default function AdminUsers() {
   }
 
   return (
-    <main className={APP_MAIN}>
-      <p className={PAGE_TITLE}>Administração · Usuários</p>
-      <p className={PAGE_SUBTITLE}>Crie novos usuários e gerencie permissões de administrador.</p>
+    <PageMain>
+      <PageTitle>Administração · Usuários</PageTitle>
+      <PageSubtitle>Crie novos usuários e gerencie permissões de administrador.</PageSubtitle>
 
-      {error && <div className={FORM_ERROR}>{error}</div>}
-      {notice && <div className={`${CARD} mb-3 border-success`}>{notice}</div>}
+      {error && <FormError>{error}</FormError>}
+      {notice && <Notice>{notice}</Notice>}
 
-      <form className={`${CARD} mb-3 grid gap-3`} onSubmit={handleCreate}>
-        <label className="grid gap-1">
-          <span className={FIELD_LABEL}>Nome completo</span>
-          <input
-            type="text"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            placeholder="Maria Silva"
-            className={INPUT}
-          />
-        </label>
-        <label className="grid gap-1">
-          <span className={FIELD_LABEL}>E-mail</span>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="maria@exemplo.com"
-            required
-            className={INPUT}
-          />
-        </label>
-        <label className="grid gap-1">
-          <span className={FIELD_LABEL}>Senha inicial</span>
-          <input
-            type="text"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Mínimo de 6 caracteres"
-            required
-            className={INPUT}
-          />
-        </label>
-        <button className={BTN_PRIMARY_BLOCK} type="submit" disabled={creating}>
-          {creating ? 'Criando…' : 'Criar usuário'}
-        </button>
+      <form className="mb-3" onSubmit={handleCreate}>
+        <Card>
+          <CardContent className="gap-3">
+            <FormField label="Nome completo">
+              <Input
+                type="text"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="Maria Silva"
+              />
+            </FormField>
+            <FormField label="E-mail">
+              <Input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="maria@exemplo.com"
+                required
+              />
+            </FormField>
+            <FormField label="Senha inicial">
+              <Input
+                type="text"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Mínimo de 6 caracteres"
+                required
+              />
+            </FormField>
+            <Button type="submit" className="w-full" disabled={creating}>
+              {creating ? 'Criando…' : 'Criar usuário'}
+            </Button>
+          </CardContent>
+        </Card>
       </form>
 
       {loading ? (
-        <div className="flex flex-1 items-center justify-center p-6">
-          <Spinner className="text-primary" />
-        </div>
+        <CenteredLoader />
       ) : (
         users.map((u) => (
-          <div key={u.id} className={`${CARD} mb-3`}>
-            <div className="flex items-center justify-between">
+          <Card key={u.id} className="mb-3 shadow-sm">
+            <CardContent className="flex-row items-center justify-between gap-3">
               <div>
                 <p className="m-0 mb-1 font-bold">{u.full_name ?? u.email ?? 'Usuário'}</p>
-                <p className="m-0 text-[13px] text-text-muted">{u.email}</p>
+                <p className="m-0 text-[13px] text-muted-foreground">{u.email}</p>
               </div>
               <div className="flex items-center gap-2">
-                {u.is_admin && (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-1 text-xs font-semibold text-success">
-                    Admin
-                  </span>
-                )}
-                <button
-                  className={BTN_SECONDARY}
-                  onClick={() => toggleAdmin(u)}
-                  title={u.is_admin ? 'Remover admin' : 'Tornar admin'}
-                >
+                {u.is_admin && <Badge className="bg-success-bg text-success">Admin</Badge>}
+                <Button variant="outline" size="sm" onClick={() => toggleAdmin(u)}>
                   {u.is_admin ? 'Remover admin' : 'Tornar admin'}
-                </button>
+                </Button>
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         ))
       )}
 
-      <nav className={LIST_NAV}>
-        <Link to="/" className={BTN_SECONDARY}>
+      <BottomNav>
+        <Button variant="outline" render={<Link to="/" />}>
           Voltar
-        </Link>
-        <Link to="/admin/checklists" className={BTN_SECONDARY}>
+        </Button>
+        <Button variant="outline" render={<Link to="/admin/checklists" />}>
           Gerenciar checklists
-        </Link>
-      </nav>
-    </main>
+        </Button>
+      </BottomNav>
+    </PageMain>
   )
 }

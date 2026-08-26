@@ -1,12 +1,9 @@
 import CameraCapture from './CameraCapture'
-import Spinner from './Spinner'
-import { BTN_PRIMARY, BTN_SECONDARY, CARD } from '../lib/ui'
+import { Spinner } from './Spinner'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import type { ChecklistItem, ItemStatus } from '../types'
-
-const BADGE_SUCCESS =
-  'inline-flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-1 text-xs font-semibold text-success'
-const BADGE_WARNING =
-  'inline-flex items-center gap-1.5 rounded-full bg-warning-bg px-2.5 py-1 text-xs font-semibold text-warning'
 
 interface ItemCardProps {
   index: number
@@ -34,58 +31,58 @@ export default function ItemCard({
   const isDone = status === 'done'
 
   return (
-    <div className={`${CARD} mb-3 flex flex-col gap-3`}>
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex gap-3">
-          <div className="flex size-[30px] shrink-0 items-center justify-center rounded-full bg-primary text-[13px] font-bold text-primary-contrast">
-            {index}
-          </div>
-          <div>
-            <p className="mb-1 text-base font-bold">{item.title}</p>
-            {item.instructions && (
-              <p className="m-0 text-sm leading-normal text-text-muted">{item.instructions}</p>
-            )}
-          </div>
+    <Card className="mb-3 shadow-sm">
+      <CardHeader className="flex-row items-start gap-3">
+        <div className="flex size-[30px] shrink-0 items-center justify-center rounded-full bg-primary text-[13px] font-bold text-primary-foreground">
+          {index}
         </div>
-        {isDone && <span className={BADGE_SUCCESS}>Concluído</span>}
-        {status === 'skipped' && <span className={BADGE_WARNING}>Pulado</span>}
-      </div>
-
-      {item.requires_photo &&
-        (readOnly ? (
-          photoUrl && (
-            <div className="w-full overflow-hidden rounded-md border border-border bg-bg">
-              <img
-                src={photoUrl}
-                alt={`Foto de ${item.title}`}
-                className="block max-h-80 w-full object-cover"
-              />
-            </div>
-          )
-        ) : (
-          <CameraCapture
-            photoUrl={photoUrl}
-            onPhotoSelected={(file) => onPhotoSelected?.(file)}
-            disabled={isDone}
-          />
-        ))}
-
-      {!readOnly && (
-        <div className="flex gap-2.5">
-          <button
-            className={`${BTN_PRIMARY} w-full`}
-            onClick={onMarkDone}
-            disabled={isDone || saving || (item.requires_photo && !photoUrl)}
-          >
-            {saving ? <Spinner /> : isDone ? 'Concluído' : 'Confirmar item'}
-          </button>
-          {!isDone && !item.requires_photo && (
-            <button className={BTN_SECONDARY} onClick={onSkip} disabled={saving}>
-              Pular
-            </button>
+        <div className="flex-1">
+          <p className="m-0 mb-1 text-base font-bold">{item.title}</p>
+          {item.instructions && (
+            <p className="m-0 text-sm leading-normal text-muted-foreground">{item.instructions}</p>
           )}
         </div>
-      )}
-    </div>
+        {isDone && <Badge className="bg-success-bg text-success">Concluído</Badge>}
+        {status === 'skipped' && <Badge className="bg-warning-bg text-warning">Pulado</Badge>}
+      </CardHeader>
+
+      <CardContent>
+        {item.requires_photo &&
+          (readOnly ? (
+            photoUrl && (
+              <div className="w-full overflow-hidden rounded-md border bg-background">
+                <img
+                  src={photoUrl}
+                  alt={`Foto de ${item.title}`}
+                  className="block max-h-80 w-full object-cover"
+                />
+              </div>
+            )
+          ) : (
+            <CameraCapture
+              photoUrl={photoUrl}
+              onPhotoSelected={(file) => onPhotoSelected?.(file)}
+              disabled={isDone}
+            />
+          ))}
+
+        {!readOnly && (
+          <div className="flex gap-2.5">
+            <Button
+              className="w-full"
+              onClick={onMarkDone}
+              disabled={isDone || saving || (item.requires_photo && !photoUrl)}
+            >
+              {saving ? <Spinner /> : isDone ? 'Concluído' : 'Confirmar item'}
+            </Button>
+            {!isDone && !item.requires_photo && (
+              <Button variant="outline" onClick={onSkip} disabled={saving}>
+                Pular
+              </Button>
+            )}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   )
 }

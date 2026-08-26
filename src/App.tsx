@@ -2,8 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import type { ReactNode } from 'react'
 import { useAuth } from './contexts/AuthContext'
 import Header from './components/Header'
-import Spinner from './components/Spinner'
-import { CENTERED_SHELL } from './lib/ui'
+import { CenteredLoader } from './components/PageShell'
 import Login from './pages/Login'
 import ResetPassword from './pages/ResetPassword'
 import Dashboard from './pages/Dashboard'
@@ -15,8 +14,8 @@ import AdminChecklists from './pages/AdminChecklists'
 
 function FullScreenLoader() {
   return (
-    <div className={CENTERED_SHELL}>
-      <Spinner className="text-primary" />
+    <div className="flex min-h-full flex-1 items-center justify-center">
+      <CenteredLoader />
     </div>
   )
 }

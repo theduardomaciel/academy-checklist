@@ -2,8 +2,11 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
-import Spinner from '../components/Spinner'
-import { BTN_PRIMARY_BLOCK, CARD, CENTERED_SHELL, FIELD_LABEL, FORM_ERROR, INPUT, PAGE_TITLE } from '../lib/ui'
+import { Spinner } from '../components/Spinner'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { FormError, FormField, PageTitle } from '../components/PageShell'
 
 export default function ResetPassword() {
   const navigate = useNavigate()
@@ -31,32 +34,32 @@ export default function ResetPassword() {
   }
 
   return (
-    <div className={CENTERED_SHELL}>
-      <form onSubmit={handleSubmit} className={`${CARD} w-full max-w-[360px]`}>
-        <p className={`${PAGE_TITLE} text-center`}>Nova senha</p>
-        {error && <div className={FORM_ERROR}>{error}</div>}
-        {done ? (
-          <p className="text-center text-success">Senha atualizada! Redirecionando...</p>
-        ) : (
-          <>
-            <div className="mb-4">
-              <label htmlFor="password" className={FIELD_LABEL}>
-                Nova senha
-              </label>
-              <input
-                id="password"
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className={INPUT}
-              />
-            </div>
-            <button type="submit" className={BTN_PRIMARY_BLOCK} disabled={loading}>
-              {loading ? <Spinner /> : 'Salvar senha'}
-            </button>
-          </>
-        )}
+    <div className="flex flex-1 items-center justify-center p-6">
+      <form onSubmit={handleSubmit} className="w-full max-w-[360px]">
+        <Card>
+          <CardContent>
+            <PageTitle>Nova senha</PageTitle>
+            {error && <FormError>{error}</FormError>}
+            {done ? (
+              <p className="text-center text-success">Senha atualizada! Redirecionando...</p>
+            ) : (
+              <>
+                <FormField label="Nova senha" htmlFor="password">
+                  <Input
+                    id="password"
+                    type="password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                </FormField>
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading ? <Spinner /> : 'Salvar senha'}
+                </Button>
+              </>
+            )}
+          </CardContent>
+        </Card>
       </form>
     </div>
   )

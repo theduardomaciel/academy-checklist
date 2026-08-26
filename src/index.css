@@ -3,9 +3,16 @@
    Design tokens: brand navy #173c6c, brand cyan #009db4, white.
    Light and dark themes share the same token names so components never
    branch on theme directly — they just read the variable.
+
+   The shadcn semantic tokens (--background, --primary, --border…) are
+   wired onto the brand palette below, so shadcn/base-ui components pick
+   up the app's look automatically.
    ========================================================================== */
 
 @import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+@import '@fontsource-variable/inter';
 
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
 
@@ -17,17 +24,7 @@
   --color-brand-cyan-light: #22a0b2;
   --color-brand-white: #ffffff;
 
-  /* Semantic (light theme) */
-  --color-bg: #f4f7fa;
-  --color-surface: #ffffff;
-  --color-surface-raised: #ffffff;
-  --color-border: #dde4ec;
-  --color-text: #12253d;
-  --color-text-muted: #5b6b80;
-  --color-primary: var(--color-brand-navy);
-  --color-primary-contrast: #ffffff;
-  --color-accent: var(--color-brand-cyan);
-  --color-accent-contrast: #ffffff;
+  /* Status (light theme values; overridden for dark below) */
   --color-success: #1c8a5a;
   --color-success-bg: #e5f5ee;
   --color-danger: #c23b3b;
@@ -38,29 +35,38 @@
   --shadow-sm: 0 1px 2px rgba(23, 60, 108, 0.08);
   --shadow-md: 0 4px 16px rgba(23, 60, 108, 0.12);
   --shadow-lg: 0 12px 32px rgba(23, 60, 108, 0.18);
-
-  --radius-sm: 8px;
-  --radius-md: 14px;
-  --radius-lg: 20px;
-
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
+/* shadcn semantic tokens — light theme */
 :root {
   color-scheme: light;
+
+  --radius: 0.875rem;
+
+  --background: #f4f7fa;
+  --foreground: #12253d;
+  --card: #ffffff;
+  --card-foreground: #12253d;
+  --popover: #ffffff;
+  --popover-foreground: #12253d;
+  --primary: #173c6c;
+  --primary-foreground: #ffffff;
+  --secondary: #e9eff6;
+  --secondary-foreground: #12253d;
+  --muted: #eef2f7;
+  --muted-foreground: #5b6b80;
+  --accent: #e8f3f5;
+  --accent-foreground: #0b5560;
+  --destructive: #c23b3b;
+  --border: #dde4ec;
+  --input: #dde4ec;
+  --ring: #009db4;
 }
 
+/* App + shadcn token overrides — dark theme */
 [data-theme='dark'] {
-  --color-bg: #0b1826;
-  --color-surface: #122238;
-  --color-surface-raised: #16283f;
-  --color-border: #22354e;
-  --color-text: #eef3f9;
-  --color-text-muted: #9fb0c4;
-  --color-primary: #3f7fc9;
-  --color-primary-contrast: #ffffff;
-  --color-accent: var(--color-brand-cyan-light);
-  --color-accent-contrast: #06222a;
+  color-scheme: dark;
+
   --color-success: #4fd399;
   --color-success-bg: #103526;
   --color-danger: #f0807a;
@@ -72,7 +78,51 @@
   --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.5);
 
-  color-scheme: dark;
+  --background: #0b1826;
+  --foreground: #eef3f9;
+  --card: #122238;
+  --card-foreground: #eef3f9;
+  --popover: #16283f;
+  --popover-foreground: #eef3f9;
+  --primary: #3f7fc9;
+  --primary-foreground: #ffffff;
+  --secondary: #22354e;
+  --secondary-foreground: #eef3f9;
+  --muted: #22354e;
+  --muted-foreground: #9fb0c4;
+  --accent: #1c3350;
+  --accent-foreground: #eef3f9;
+  --destructive: #f0807a;
+  --border: #22354e;
+  --input: #2a405c;
+  --ring: #22a0b2;
+}
+
+@theme inline {
+  --font-sans: 'Inter Variable', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
 }
 
 @layer base {
@@ -84,21 +134,23 @@
 
   body {
     margin: 0;
-    font-family: var(--font-sans);
-    background-color: var(--color-bg);
-    color: var(--color-text);
     -webkit-font-smoothing: antialiased;
     transition:
       background-color 0.2s ease,
       color 0.2s ease;
+    @apply bg-background font-sans text-foreground;
   }
 
   a {
-    color: var(--color-accent);
+    @apply text-accent-foreground underline-offset-4;
   }
 
   button {
     font-family: inherit;
+  }
+
+  * {
+    @apply border-border outline-ring/50;
   }
 
   /* Respect reduced motion preferences */
@@ -114,7 +166,7 @@
 
   /* Visible keyboard focus everywhere */
   :focus-visible {
-    outline: 2px solid var(--color-accent);
+    outline: 2px solid var(--ring);
     outline-offset: 2px;
   }
 }

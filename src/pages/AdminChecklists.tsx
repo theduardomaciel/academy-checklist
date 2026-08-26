@@ -1,27 +1,25 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
-import Spinner from '../components/Spinner'
 import {
-  APP_MAIN,
-  BTN_PRIMARY_BLOCK,
-  BTN_SECONDARY,
-  CARD,
-  FIELD_LABEL,
-  FORM_ERROR,
-  INPUT,
-  LIST_NAV,
-  PAGE_SUBTITLE,
-  PAGE_TITLE
-} from '../lib/ui'
+  BottomNav,
+  CenteredLoader,
+  FormError,
+  FormField,
+  Notice,
+  PageMain,
+  PageSubtitle,
+  PageTitle
+} from '../components/PageShell'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
 import type { AdminChecklistTemplate, ChecklistItem } from '../types'
 
 interface TemplateWithItems extends AdminChecklistTemplate {
   checklist_items: ChecklistItem[]
 }
-
-const BADGE_WARNING =
-  'inline-flex items-center gap-1.5 rounded-full bg-warning-bg px-2.5 py-1 text-xs font-semibold text-warning'
 
 export default function AdminChecklists() {
   const [templates, setTemplates] = useState<TemplateWithItems[]>([])
@@ -169,104 +167,103 @@ export default function AdminChecklists() {
   }
 
   return (
-    <main className={APP_MAIN}>
-      <p className={PAGE_TITLE}>Administração · Checklists</p>
-      <p className={PAGE_SUBTITLE}>Configure os checklists disponíveis no app.</p>
+    <PageMain>
+      <PageTitle>Administração · Checklists</PageTitle>
+      <PageSubtitle>Configure os checklists disponíveis no app.</PageSubtitle>
 
-      {error && <div className={FORM_ERROR}>{error}</div>}
-      {notice && <div className={`${CARD} mb-3 border-success`}>{notice}</div>}
+      {error && <FormError>{error}</FormError>}
+      {notice && <Notice>{notice}</Notice>}
 
-      <form className={`${CARD} mb-3 grid gap-3`} onSubmit={handleCreateTemplate}>
-        <label className="grid gap-1">
-          <span className={FIELD_LABEL}>Nome do checklist</span>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Fechamento da sala X"
-            required
-            className={INPUT}
-          />
-        </label>
-        <label className="grid gap-1">
-          <span className={FIELD_LABEL}>Descrição</span>
-          <input
-            type="text"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Opcional"
-            className={INPUT}
-          />
-        </label>
-        <button className={BTN_PRIMARY_BLOCK} type="submit" disabled={creating}>
-          {creating ? 'Criando…' : 'Criar checklist'}
-        </button>
+      <form className="mb-3" onSubmit={handleCreateTemplate}>
+        <Card>
+          <CardContent className="gap-3">
+            <FormField label="Nome do checklist">
+              <Input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Fechamento da sala X"
+                required
+              />
+            </FormField>
+            <FormField label="Descrição">
+              <Input
+                type="text"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Opcional"
+              />
+            </FormField>
+            <Button type="submit" className="w-full" disabled={creating}>
+              {creating ? 'Criando…' : 'Criar checklist'}
+            </Button>
+          </CardContent>
+        </Card>
       </form>
 
       {loading ? (
-        <div className="flex flex-1 items-center justify-center p-6">
-          <Spinner className="text-primary" />
-        </div>
+        <CenteredLoader />
       ) : (
         templates.map((t) => (
-          <div key={t.id} className={`${CARD} mb-3`}>
-            <div className="flex items-center justify-between">
+          <Card key={t.id} className="mb-3 shadow-sm">
+            <CardContent className="gap-2">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="m-0 mb-1 flex items-center gap-2 font-bold">
+                    {t.name}
+                    {!t.is_active && <Badge className="bg-warning-bg text-warning">Inativo</Badge>}
+                  </p>
+                  {t.description && <CardDescription>{t.description}</CardDescription>}
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={() => toggleActive(t)}>
+                    {t.is_active ? 'Desativar' : 'Ativar'}
+                  </Button>
+                  <Button variant="destructive" size="sm" onClick={() => deleteTemplate(t)}>
+                    Excluir
+                  </Button>
+                </div>
+              </div>
+
+              <ol className="m-0 pl-5">
+                {t.checklist_items.map((item) => (
+                  <li key={item.id} className="mb-1.5">
+                    <span>{item.title}</span>
+                    {item.requires_photo && (
+                      <Badge variant="outline" className="ml-2">
+                        📷 Foto
+                      </Badge>
+                    )}
+                    <button
+                      className="ml-1 cursor-pointer bg-transparent p-1 text-muted-foreground hover:text-destructive"
+                      onClick={() => removeItem(t.id, item.id)}
+                      title="Remover item"
+                      aria-label={`Remover ${item.title}`}
+                    >
+                      ✕
+                    </button>
+                  </li>
+                ))}
+              </ol>
+
               <div>
-                <p className="m-0 mb-1 font-bold">
-                  {t.name}{' '}
-                  {!t.is_active && <span className={BADGE_WARNING}>Inativo</span>}
-                </p>
-                {t.description && (
-                  <p className="m-0 text-[13px] text-text-muted">{t.description}</p>
-                )}
+                <Button variant="outline" size="sm" onClick={() => addItem(t.id)}>
+                  Adicionar item
+                </Button>
               </div>
-              <div className="flex gap-2">
-                <button className={BTN_SECONDARY} onClick={() => toggleActive(t)}>
-                  {t.is_active ? 'Desativar' : 'Ativar'}
-                </button>
-                <button className={BTN_SECONDARY} onClick={() => deleteTemplate(t)}>
-                  Excluir
-                </button>
-              </div>
-            </div>
-
-            <ol className="mb-0 mt-3 pl-5">
-              {t.checklist_items.map((item) => (
-                <li key={item.id} className="mb-1.5">
-                  <span>{item.title}</span>
-                  {item.requires_photo && (
-                    <span className="inline-flex items-center rounded-full bg-border px-2.5 py-1 text-xs font-semibold text-text-muted">
-                      {' '}
-                      📷
-                    </span>
-                  )}
-                  <button
-                    className="ml-2 inline-flex cursor-pointer items-center bg-transparent p-2 px-2.5 text-inherit"
-                    onClick={() => removeItem(t.id, item.id)}
-                    title="Remover item"
-                    aria-label={`Remover ${item.title}`}
-                  >
-                    ✕
-                  </button>
-                </li>
-              ))}
-            </ol>
-
-            <button className={`${BTN_SECONDARY} mt-3`} onClick={() => addItem(t.id)}>
-              Adicionar item
-            </button>
-          </div>
+            </CardContent>
+          </Card>
         ))
       )}
 
-      <nav className={LIST_NAV}>
-        <Link to="/" className={BTN_SECONDARY}>
+      <BottomNav>
+        <Button variant="outline" render={<Link to="/" />}>
           Voltar
-        </Link>
-        <Link to="/admin/usuarios" className={BTN_SECONDARY}>
+        </Button>
+        <Button variant="outline" render={<Link to="/admin/usuarios" />}>
           Gerenciar usuários
-        </Link>
-      </nav>
-    </main>
+        </Button>
+      </BottomNav>
+    </PageMain>
   )
 }

@@ -2,15 +2,15 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { supabase, PHOTOS_BUCKET } from '../lib/supabaseClient'
 import ItemCard from '../components/ItemCard'
-import Spinner from '../components/Spinner'
 import {
-  APP_MAIN,
-  BTN_SECONDARY,
-  FORM_ERROR,
-  LIST_NAV,
-  PAGE_SUBTITLE,
-  PAGE_TITLE
-} from '../lib/ui'
+  BottomNav,
+  CenteredLoader,
+  FormError,
+  PageMain,
+  PageSubtitle,
+  PageTitle
+} from '../components/PageShell'
+import { Button } from '@/components/ui/button'
 import type { ChecklistItem, ClosingSession, LogEntry } from '../types'
 
 interface SessionDetailRow extends ClosingSession {
@@ -78,29 +78,27 @@ export default function SessionDetail() {
 
   if (loading) {
     return (
-      <main className={APP_MAIN}>
-        <div className="flex flex-1 items-center justify-center p-6">
-          <Spinner className="text-primary" />
-        </div>
-      </main>
+      <PageMain>
+        <CenteredLoader />
+      </PageMain>
     )
   }
 
   if (error || !session) {
     return (
-      <main className={APP_MAIN}>
-        <div className={FORM_ERROR}>{error}</div>
-      </main>
+      <PageMain>
+        <FormError>{error}</FormError>
+      </PageMain>
     )
   }
 
   return (
-    <main className={APP_MAIN}>
-      <p className={PAGE_TITLE}>{session.checklist_templates?.name ?? 'Checklist'}</p>
-      <p className={PAGE_SUBTITLE}>
+    <PageMain>
+      <PageTitle>{session.checklist_templates?.name ?? 'Checklist'}</PageTitle>
+      <PageSubtitle>
         {new Date(session.started_at).toLocaleString('pt-BR')} ·{' '}
         {session.status === 'completed' ? 'Concluído' : 'Em andamento'}
-      </p>
+      </PageSubtitle>
 
       {items.map((item, idx) => {
         const entry = logsByItem[item.id] ?? {}
@@ -116,11 +114,11 @@ export default function SessionDetail() {
         )
       })}
 
-      <nav className={LIST_NAV}>
-        <button className={BTN_SECONDARY} onClick={() => navigate('/historico')}>
+      <BottomNav>
+        <Button variant="outline" onClick={() => navigate('/historico')}>
           Voltar ao histórico
-        </button>
-      </nav>
-    </main>
+        </Button>
+      </BottomNav>
+    </PageMain>
   )
 }

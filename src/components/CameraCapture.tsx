@@ -4,6 +4,9 @@ import CameraIcon from './icons/CameraIcon'
 
 const CAPTURE_INPUT_CLASS = 'hidden'
 
+const CAPTURE_LABEL_CLASS =
+  'flex cursor-pointer items-center justify-center gap-2 rounded-md border-2 border-dashed px-4 text-center text-sm font-semibold text-muted-foreground transition-colors hover:border-brand-cyan hover:text-brand-cyan'
+
 interface CameraCaptureProps {
   photoUrl?: string | null
   onPhotoSelected: (file: File) => void
@@ -33,14 +36,14 @@ export default function CameraCapture({ photoUrl, onPhotoSelected, disabled }: C
   if (photoUrl) {
     return (
       <div>
-        <div className="w-full overflow-hidden rounded-md border border-border bg-bg">
+        <div className="w-full overflow-hidden rounded-md border bg-background">
           <img
             src={photoUrl}
             alt="Foto do item registrado"
             className="block max-h-80 w-full object-cover"
           />
         </div>
-        <label className="mt-2.5 flex cursor-pointer items-center justify-center gap-2 rounded-md border-2 border-dashed border-border px-4 py-2.5 text-center text-sm font-semibold text-text-muted hover:border-accent hover:text-accent">
+        <label className={`${CAPTURE_LABEL_CLASS} mt-2.5 border py-2.5`}>
           Tirar outra foto
           <input
             className={CAPTURE_INPUT_CLASS}
@@ -56,7 +59,7 @@ export default function CameraCapture({ photoUrl, onPhotoSelected, disabled }: C
   }
 
   return (
-    <label className="flex cursor-pointer items-center justify-center gap-2 rounded-md border-2 border-dashed border-border px-4 py-7 text-center text-sm font-semibold text-text-muted hover:border-accent hover:text-accent">
+    <label className={`${CAPTURE_LABEL_CLASS} border py-7`}>
       <CameraIcon />
       Tirar foto do item
       <input

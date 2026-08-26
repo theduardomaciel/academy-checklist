@@ -2,18 +2,18 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../contexts/AuthContext'
-import Spinner from '../components/Spinner'
+import { Spinner } from '../components/Spinner'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardTitle } from '@/components/ui/card'
 import {
-  APP_MAIN,
-  BTN_PRIMARY_BLOCK,
-  BTN_SECONDARY,
-  CARD,
-  CENTERED_SHELL,
-  FORM_ERROR,
-  LIST_NAV,
-  PAGE_SUBTITLE,
-  PAGE_TITLE
-} from '../lib/ui'
+  BottomNav,
+  CenteredLoader,
+  FormError,
+  PageMain,
+  PageSubtitle,
+  PageTitle
+} from '../components/PageShell'
 import type { ChecklistTemplate, ClosingSession } from '../types'
 
 interface ActiveSession extends ClosingSession {
@@ -87,61 +87,61 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <main className={APP_MAIN}>
-        <div className={CENTERED_SHELL}>
-          <Spinner className="text-primary" />
-        </div>
-      </main>
+      <PageMain>
+        <CenteredLoader />
+      </PageMain>
     )
   }
 
   return (
-    <main className={APP_MAIN}>
-      <p className={PAGE_TITLE}>Olá 👋</p>
-      <p className={PAGE_SUBTITLE}>Selecione um checklist para fechar o espaço.</p>
+    <PageMain>
+      <PageTitle>Olá 👋</PageTitle>
+      <PageSubtitle>Selecione um checklist para fechar o espaço.</PageSubtitle>
 
-      {error && <div className={FORM_ERROR}>{error}</div>}
+      {error && <FormError>{error}</FormError>}
 
       {activeSession && (
-        <div className={`${CARD} mb-4 border-2 border-accent`}>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-warning-bg px-2.5 py-1 text-xs font-semibold text-warning">
-            Em andamento
-          </span>
-          <p className="mb-3.5 mt-1 font-semibold">Você tem um checklist não finalizado.</p>
-          <button className={BTN_PRIMARY_BLOCK} onClick={() => navigate(`/sessao/${activeSession.id}`)}>
-            Continuar checklist
-          </button>
-        </div>
+        <Card className="mb-4 ring-2 ring-brand-cyan">
+          <CardContent>
+            <Badge className="bg-warning-bg text-warning">Em andamento</Badge>
+            <p className="mb-3.5 mt-1 font-semibold">Você tem um checklist não finalizado.</p>
+            <Button className="w-full" onClick={() => navigate(`/sessao/${activeSession.id}`)}>
+              Continuar checklist
+            </Button>
+          </CardContent>
+        </Card>
       )}
 
       {templates.length === 0 ? (
-        <div className={`${CARD} px-5 py-12 text-center text-text-muted`}>
-          Nenhum checklist ativo foi configurado ainda. Peça ao responsável para cadastrar um em
-          `checklist_templates`.
-        </div>
+        <Card>
+          <CardContent className="items-center px-5 py-12 text-center text-muted-foreground">
+            Nenhum checklist ativo foi configurado ainda. Peça ao responsável para cadastrar um em
+            `checklist_templates`.
+          </CardContent>
+        </Card>
       ) : (
         templates.map((tpl) => (
-          <div className={`${CARD} mb-3`} key={tpl.id}>
-            <p className="m-0 mb-1 text-base font-bold">{tpl.name}</p>
-            {tpl.description && (
-              <p className="m-0 text-sm leading-normal text-text-muted">{tpl.description}</p>
-            )}
-            <button
-              className={`${BTN_PRIMARY_BLOCK} mt-3`}
-              onClick={() => startSession(tpl.id)}
-              disabled={!!activeSession || startingId === tpl.id}
-            >
-              {startingId === tpl.id ? <Spinner /> : 'Iniciar fechamento'}
-            </button>
-          </div>
+          <Card key={tpl.id} className="mb-3">
+            <CardContent className="gap-1">
+              <CardTitle>{tpl.name}</CardTitle>
+              {tpl.description && <CardDescription>{tpl.description}</CardDescription>}
+              <Button
+                className="mt-3 w-full"
+                onClick={() => startSession(tpl.id)}
+                disabled={!!activeSession || startingId === tpl.id}
+              >
+                {startingId === tpl.id ? <Spinner /> : 'Iniciar fechamento'}
+              </Button>
+            </CardContent>
+          </Card>
         ))
       )}
 
-      <nav className={LIST_NAV}>
-        <button className={BTN_SECONDARY} onClick={() => navigate('/historico')}>
+      <BottomNav>
+        <Button variant="outline" onClick={() => navigate('/historico')}>
           Ver histórico
-        </button>
-      </nav>
-    </main>
+        </Button>
+      </BottomNav>
+    </PageMain>
   )
 }

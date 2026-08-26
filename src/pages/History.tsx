@@ -2,17 +2,17 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../contexts/AuthContext'
-import Spinner from '../components/Spinner'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import {
-  APP_MAIN,
-  BTN_SECONDARY,
-  CARD,
-  CENTERED_SHELL,
-  FORM_ERROR,
-  LIST_NAV,
-  PAGE_SUBTITLE,
-  PAGE_TITLE
-} from '../lib/ui'
+  BottomNav,
+  CenteredLoader,
+  FormError,
+  PageMain,
+  PageSubtitle,
+  PageTitle
+} from '../components/PageShell'
 
 interface HistoryRow {
   id: string
@@ -33,8 +33,6 @@ const STATUS_LABEL: Record<string, { text: string; className: string }> = {
     className: 'bg-warning-bg text-warning'
   }
 }
-
-const BADGE = 'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold'
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleString('pt-BR', {
@@ -85,53 +83,52 @@ export default function History() {
   }
 
   return (
-    <main className={APP_MAIN}>
-      <p className={PAGE_TITLE}>Histórico</p>
-      <p className={PAGE_SUBTITLE}>
+    <PageMain>
+      <PageTitle>Histórico</PageTitle>
+      <PageSubtitle>
         {isAdmin ? 'Fechamentos de todos os usuários.' : 'Seus fechamentos anteriores.'}
-      </p>
+      </PageSubtitle>
 
-      {error && <div className={FORM_ERROR}>{error}</div>}
+      {error && <FormError>{error}</FormError>}
 
       {loading ? (
-        <div className={CENTERED_SHELL}>
-          <Spinner className="text-primary" />
-        </div>
+        <CenteredLoader />
       ) : sessions.length === 0 ? (
-        <div className={`${CARD} px-5 py-12 text-center text-text-muted`}>
-          Nenhum fechamento registrado ainda.
-        </div>
+        <Card>
+          <CardContent className="items-center px-5 py-12 text-center text-muted-foreground">
+            Nenhum fechamento registrado ainda.
+          </CardContent>
+        </Card>
       ) : (
         sessions.map((s) => (
-          <Link
-            key={s.id}
-            to={`/historico/${s.id}`}
-            className={`${CARD} mb-3 block no-underline`}
-            style={{ color: 'inherit' }}
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="m-0 mb-1 font-bold">
-                  {s.checklist_templates?.name ?? 'Checklist'}
-                </p>
-                <p className="m-0 text-[13px] text-text-muted">
-                  {isAdmin && s.profiles?.full_name ? `${s.profiles.full_name} · ` : ''}
-                  {formatDate(s.started_at)}
-                </p>
-              </div>
-              <span className={`${BADGE} ${STATUS_LABEL[s.status]?.className ?? 'bg-border text-text-muted'}`}>
-                {STATUS_LABEL[s.status]?.text ?? s.status}
-              </span>
-            </div>
+          <Link key={s.id} to={`/historico/${s.id}`} className="mb-3 block no-underline">
+            <Card className="shadow-sm transition-shadow hover:shadow-md">
+              <CardContent className="flex-row items-center justify-between gap-3">
+                <div>
+                  <p className="m-0 mb-1 font-bold">{s.checklist_templates?.name ?? 'Checklist'}</p>
+                  <p className="m-0 text-[13px] text-muted-foreground">
+                    {isAdmin && s.profiles?.full_name ? `${s.profiles.full_name} · ` : ''}
+                    {formatDate(s.started_at)}
+                  </p>
+                </div>
+                <Badge
+                  className={
+                    STATUS_LABEL[s.status]?.className ?? 'bg-border text-muted-foreground'
+                  }
+                >
+                  {STATUS_LABEL[s.status]?.text ?? s.status}
+                </Badge>
+              </CardContent>
+            </Card>
           </Link>
         ))
       )}
 
-      <nav className={LIST_NAV}>
-        <button className={BTN_SECONDARY} onClick={() => navigate('/')}>
+      <BottomNav>
+        <Button variant="outline" onClick={() => navigate('/')}>
           Voltar
-        </button>
-      </nav>
-    </main>
+        </Button>
+      </BottomNav>
+    </PageMain>
   )
 }
