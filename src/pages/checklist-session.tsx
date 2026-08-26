@@ -158,7 +158,7 @@ export default function ChecklistSession() {
 		}
 	}
 
-	async function skipItem(item: ChecklistItem) {
+	/* async function skipItem(item: ChecklistItem) {
 		if (!session) return;
 		setSavingItemId(item.id);
 		setError("");
@@ -182,7 +182,7 @@ export default function ChecklistSession() {
 			...prev,
 			[item.id]: { status: "skipped" },
 		}));
-	}
+	} */
 
 	async function finishSession() {
 		if (!session) return;
