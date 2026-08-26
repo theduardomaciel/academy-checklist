@@ -66,7 +66,12 @@ export default function Login() {
 				<img
 					src="/logo-blue.svg"
 					alt="Edge Academy"
-					className="h-14 w-auto"
+					className="h-14 w-auto dark:hidden"
+				/>
+				<img
+					src="/logo-white.svg"
+					alt="Edge Academy"
+					className="h-14 w-auto hidden dark:block"
 				/>
 			</div>
 
@@ -128,7 +133,7 @@ export default function Login() {
 				</Card>
 			</form>
 
-			<p className="mt-5 text-xs text-muted-foreground">
+			<p className="mt-5 text-xs text-center mx-6 text-muted-foreground">
 				Não tem uma conta? Peça a um responsável pela gerência do
 				Academy para criá-la.
 			</p>
