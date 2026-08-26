@@ -61,49 +61,49 @@ export default function ItemCard({
 				)}
 			</CardHeader>
 
-		{(item.requires_photo || !readOnly) && (
-					<CardContent>
-						{item.requires_photo &&
-							(readOnly ? (
-								photoUrl && (
-									<div className="w-full overflow-hidden rounded-md border bg-background">
-										<img
-											src={photoUrl}
-											alt={`Foto de ${item.title}`}
-											className="block max-h-80 w-full object-cover"
-										/>
-									</div>
-								)
-							) : (
-								<CameraCapture
-									photoUrl={photoUrl}
-									onPhotoSelected={(file) =>
-										onPhotoSelected?.(file)
-									}
-									disabled={isDone}
-								/>
-							))}
+			{(item.requires_photo || !readOnly) && (
+				<CardContent>
+					{item.requires_photo &&
+						(readOnly ? (
+							photoUrl && (
+								<div className="w-full overflow-hidden rounded-md border bg-background">
+									<img
+										src={photoUrl}
+										alt={`Foto de ${item.title}`}
+										className="block max-h-80 w-full object-cover"
+									/>
+								</div>
+							)
+						) : (
+							<CameraCapture
+								photoUrl={photoUrl}
+								onPhotoSelected={(file) =>
+									onPhotoSelected?.(file)
+								}
+								disabled={isDone}
+							/>
+						))}
 
-						{!readOnly && (
-							<div className="flex gap-2.5">
-								<Button
-									className="w-full"
-									onClick={onMarkDone}
-									disabled={
-										isDone ||
-										saving ||
-										(item.requires_photo && !photoUrl)
-									}
-								>
-									{saving ? (
-										<Spinner />
-									) : isDone ? (
-										"Concluído"
-									) : (
-										"Confirmar item"
-									)}
-								</Button>
-								{!isDone && !item.requires_photo && (
+					{!readOnly && (
+						<div className="flex gap-2.5">
+							<Button
+								className="w-full"
+								onClick={onMarkDone}
+								disabled={
+									isDone ||
+									saving ||
+									(item.requires_photo && !photoUrl)
+								}
+							>
+								{saving ? (
+									<Spinner />
+								) : isDone ? (
+									"Concluído"
+								) : (
+									"Confirmar item"
+								)}
+							</Button>
+							{/* {!isDone && !item.requires_photo && (
 									<Button
 										variant="outline"
 										onClick={onSkip}
@@ -111,9 +111,9 @@ export default function ItemCard({
 									>
 										Pular
 									</Button>
-								)}
-							</div>
-						)}
+								)} */}
+						</div>
+					)}
 				</CardContent>
 			)}
 		</Card>
