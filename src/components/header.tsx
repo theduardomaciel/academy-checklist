@@ -2,7 +2,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { Settings, UserRound } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
 import { Button } from "@/components/ui/button";
-import ThemeToggle from "./theme-toggle";
 
 export default function Header() {
 	const { isAdmin } = useAuth();

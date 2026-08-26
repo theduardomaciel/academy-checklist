@@ -3,8 +3,8 @@ import { useTheme } from '@/contexts/theme-context'
 import { Button } from '@/components/ui/button'
 
 export default function ThemeToggle() {
-  const { theme, toggleTheme } = useTheme()
-  const isDark = theme === 'dark'
+  const { resolvedTheme, toggleTheme } = useTheme()
+  const isDark = resolvedTheme === 'dark'
 
   return (
     <Button

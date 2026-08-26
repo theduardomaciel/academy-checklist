@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { Monitor, Moon, Sun } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase-client";
 import { useAuth } from "@/contexts/auth-context";
+import { useTheme, type Theme } from "@/contexts/theme-context";
 import {
 	BottomNav,
 	FormError,
@@ -15,11 +17,25 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { Spinner } from "@/components/spinner";
 import { USER_ROLES } from "@/types";
 
+const THEME_OPTIONS = [
+	{ value: "system", label: "Sistema", icon: Monitor },
+	{ value: "light", label: "Claro", icon: Sun },
+	{ value: "dark", label: "Escuro", icon: Moon },
+] as const;
+
 export default function Settings() {
-	const { user, signOut } = useAuth();
+	  const { user, signOut } = useAuth()
+  const { theme, setTheme } = useTheme();
 	const navigate = useNavigate();
 
 	async function handleSignOut() {
@@ -108,6 +124,46 @@ export default function Settings() {
 							? role
 							: "Não definido"}
 					</p>
+				</CardContent>
+			</Card>
+
+			<Card className="mb-3">
+				<CardContent className="gap-3">
+					<FormField label="Aparência">
+						<Select
+							value={theme}
+							onValueChange={(val: string | null) =>
+								setTheme((val ?? "system") as Theme)
+							}
+						>
+							<SelectTrigger aria-label="Aparência">
+								<SelectValue placeholder="Aparência">
+									{(value) => {
+										const opt = THEME_OPTIONS.find((o) => o.value === value);
+										if (!opt) return "Aparência";
+										const Icon = opt.icon;
+										return (
+											<span className="flex items-center gap-2">
+												<Icon className="size-4" />
+												{opt.label}
+											</span>
+										);
+									}}
+								</SelectValue>
+							</SelectTrigger>
+							<SelectContent>
+								{THEME_OPTIONS.map((o) => {
+									const Icon = o.icon;
+									return (
+										<SelectItem key={o.value} value={o.value}>
+											<Icon className="size-4" />
+											{o.label}
+										</SelectItem>
+									);
+								})}
+							</SelectContent>
+						</Select>
+					</FormField>
 				</CardContent>
 			</Card>
 
