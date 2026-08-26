@@ -13,7 +13,6 @@ interface ItemCardProps {
 	status?: ItemStatus;
 	onPhotoSelected?: (file: File) => void;
 	onMarkDone?: () => void;
-	onSkip?: () => void;
 	readOnly?: boolean;
 	saving?: boolean;
 }
@@ -25,7 +24,6 @@ export default function ItemCard({
 	status,
 	onPhotoSelected,
 	onMarkDone,
-	onSkip,
 	readOnly,
 	saving,
 }: ItemCardProps) {
