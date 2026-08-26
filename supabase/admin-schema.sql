@@ -83,7 +83,7 @@ begin
   insert into public.profiles (id, full_name)
   values (
     new.id,
-    coalesce(new.raw_user_meta_data ->> 'full_name', new.email)
+    nullif(new.raw_user_meta_data ->> 'full_name', '')
   )
   on conflict (id) do nothing;
   return new;
@@ -97,7 +97,7 @@ create trigger on_auth_user_created
 
 -- Backfill profiles for users that existed before this migration.
 insert into public.profiles (id, full_name)
-select u.id, coalesce(u.raw_user_meta_data ->> 'full_name', u.email)
+select u.id, nullif(u.raw_user_meta_data ->> 'full_name', '')
 from auth.users u
 on conflict (id) do nothing;
 
