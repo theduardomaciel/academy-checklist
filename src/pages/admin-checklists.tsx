@@ -1,6 +1,21 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
+import {
+	DndContext,
+	PointerSensor,
+	closestCenter,
+	useSensor,
+	useSensors,
+	type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+	SortableContext,
+	arrayMove,
+	useSortable,
+	verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { supabase } from "@/lib/supabase-client";
 import {
 	BottomNav,
@@ -242,6 +257,43 @@ export default function AdminChecklists() {
 		toast.success("Item removido.");
 	}
 
+	async function handleReorder(
+		templateId: string,
+		from: number,
+		to: number,
+	) {
+		const template = templates.find((t) => t.id === templateId);
+		if (!template || from === to) return;
+
+		const reordered = arrayMove(template.checklist_items, from, to);
+		const withOrder = reordered.map((item, i) => ({
+			...item,
+			order_index: i + 1,
+		}));
+
+		setTemplates((prev) =>
+			prev.map((t) =>
+				t.id === templateId ? { ...t, checklist_items: withOrder } : t,
+			),
+		);
+
+		const { error: updateError } = await supabase
+			.from("checklist_items")
+			.upsert(
+				withOrder.map((item, i) => ({
+					id: item.id,
+					order_index: i + 1,
+				})),
+			);
+
+		if (updateError) {
+			toast.error("Não foi possível salvar a nova ordem.");
+			load();
+			return;
+		}
+		toast.success("Ordem atualizada.");
+	}
+
 	function closeItemDialog() {
 		setItemTemplateId(null);
 		setItemForm(emptyItemForm);
@@ -325,39 +377,13 @@ export default function AdminChecklists() {
 								</div>
 							</div>
 
-							<ol className="m-0">
-								{t.checklist_items.map((item) => (
-									<li key={item.id} className="mb-1.5">
-										<span>{item.title}</span>
-										{item.location && (
-											<Badge
-												variant="outline"
-												className="ml-2"
-											>
-												📍 {item.location}
-											</Badge>
-										)}
-										{item.requires_photo && (
-											<Badge
-												variant="outline"
-												className="ml-2"
-											>
-												📷 Foto
-											</Badge>
-										)}
-										<button
-											className="ml-1 cursor-pointer bg-transparent p-1 text-muted-foreground hover:text-destructive"
-											onClick={() =>
-												removeItem(t.id, item.id)
-											}
-											title="Remover item"
-											aria-label={`Remover ${item.title}`}
-										>
-											✕
-										</button>
-									</li>
-								))}
-							</ol>
+							<TemplateItems
+								template={t}
+								onReorder={handleReorder}
+								onRemoveItem={(itemId) =>
+									removeItem(t.id, itemId)
+								}
+							/>
 
 							<div>
 								<Button
@@ -470,7 +496,7 @@ export default function AdminChecklists() {
 					<AlertDialogHeader>
 						<AlertDialogTitle>Excluir checklist?</AlertDialogTitle>
 						<AlertDialogDescription>
-							O checklist "{deleteTarget?.name}" e todos os seus
+							O checklist &quot;{deleteTarget?.name}&quot; e todos os seus
 							itens serão excluídos permanentemente. Esta ação não
 							pode ser desfeita.
 						</AlertDialogDescription>
@@ -514,4 +540,118 @@ function nextOrderFor(
 ): number | undefined {
 	const template = templates.find((t) => t.id === templateId);
 	return template ? template.checklist_items.length + 1 : undefined;
+}
+
+function TemplateItems({
+	template,
+	onReorder,
+	onRemoveItem,
+}: {
+	template: TemplateWithItems;
+	onReorder: (templateId: string, from: number, to: number) => void;
+	onRemoveItem: (itemId: string) => void;
+}) {
+	const sensors = useSensors(
+		useSensor(PointerSensor, {
+			activationConstraint: { distance: 5 },
+		}),
+	);
+
+	function handleDragEnd(event: DragEndEvent) {
+		const { active, over } = event;
+		if (!over || active.id === over.id) return;
+
+		const from = template.checklist_items.findIndex(
+			(i) => i.id === active.id,
+		);
+		const to = template.checklist_items.findIndex((i) => i.id === over.id);
+		if (from < 0 || to < 0) return;
+		onReorder(template.id, from, to);
+	}
+
+	return (
+		<DndContext
+			sensors={sensors}
+			collisionDetection={closestCenter}
+			onDragEnd={handleDragEnd}
+		>
+			<SortableContext
+				items={template.checklist_items.map((i) => i.id)}
+				strategy={verticalListSortingStrategy}
+			>
+				<ol className="m-0">
+					{template.checklist_items.map((item) => (
+						<SortableRow
+							key={item.id}
+							item={item}
+							onDelete={() => onRemoveItem(item.id)}
+						/>
+					))}
+				</ol>
+			</SortableContext>
+		</DndContext>
+	);
+}
+
+function SortableRow({
+	item,
+	onDelete,
+}: {
+	item: ChecklistItem;
+	onDelete: () => void;
+}) {
+	const {
+		attributes,
+		listeners,
+		setNodeRef,
+		transform,
+		transition,
+		isDragging,
+	} = useSortable({ id: item.id });
+
+	return (
+		<li
+			ref={setNodeRef}
+			style={{
+				transform: CSS.Transform.toString(transform),
+				transition,
+				zIndex: isDragging ? 10 : undefined,
+				position: isDragging ? "relative" : undefined,
+			}}
+			className={`mb-1.5 flex items-center rounded ${
+				isDragging ? "bg-muted opacity-80" : ""
+			}`}
+		>
+			<button
+				type="button"
+				className="cursor-grab touch-none bg-transparent px-1 text-muted-foreground hover:text-foreground active:cursor-grabbing"
+				title="Arraste para reordenar"
+				aria-label={`Reordenar ${item.title}`}
+				{...attributes}
+				{...listeners}
+			>
+				⠿
+			</button>
+			<span>{item.title}</span>
+			{item.location && (
+				<Badge variant="outline" className="ml-2">
+					📍 {item.location}
+				</Badge>
+			)}
+			{item.requires_photo && (
+				<Badge variant="outline" className="ml-2">
+					📷 Foto
+				</Badge>
+			)}
+			<button
+				type="button"
+				className="ml-1 cursor-pointer bg-transparent p-1 text-muted-foreground hover:text-destructive"
+				title="Remover item"
+				aria-label={`Remover ${item.title}`}
+				onClick={onDelete}
+			>
+				✕
+			</button>
+		</li>
+	);
 }

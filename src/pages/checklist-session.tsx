@@ -48,7 +48,7 @@ export default function ChecklistSession() {
       await Promise.all([
         supabase
           .from('checklist_items')
-          .select('id, title, instructions, order_index, requires_photo')
+          .select('id, title, location, instructions, order_index, requires_photo')
           .eq('template_id', sessionData.template_id)
           .order('order_index'),
         supabase.from('closing_logs').select('*').eq('session_id', sessionId!)
