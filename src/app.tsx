@@ -14,7 +14,7 @@ import AdminChecklists from './pages/admin-checklists'
 
 function FullScreenLoader() {
   return (
-    <div className="flex min-h-full flex-1 items-center justify-center">
+    <div className="flex min-h-dvh flex-1 flex-col items-center justify-center">
       <CenteredLoader />
     </div>
   )
@@ -39,7 +39,7 @@ export default function App() {
   const { user, loading } = useAuth()
 
   return (
-    <div className="flex min-h-full flex-col">
+    <div className="flex min-h-dvh flex-col">
       {user && <Header />}
       <Routes>
         <Route
