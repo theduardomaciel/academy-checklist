@@ -16,7 +16,7 @@ import {
 
 interface HistoryRow {
   id: string
-  status: 'in_progress' | 'completed'
+  status: 'in_progress' | 'completed' | 'cancelled'
   started_at: string
   completed_at: string | null
   checklist_templates: { name: string } | null
@@ -31,6 +31,10 @@ const STATUS_LABEL: Record<string, { text: string; className: string }> = {
   in_progress: {
     text: 'Em andamento',
     className: 'bg-warning-bg text-warning'
+  },
+  cancelled: {
+    text: 'Cancelado',
+    className: 'bg-destructive text-destructive-foreground'
   }
 }
 

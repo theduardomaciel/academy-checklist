@@ -97,7 +97,11 @@ export default function SessionDetail() {
       <PageTitle>{session.checklist_templates?.name ?? 'Checklist'}</PageTitle>
       <PageSubtitle>
         {new Date(session.started_at).toLocaleString('pt-BR')} ·{' '}
-        {session.status === 'completed' ? 'Concluído' : 'Em andamento'}
+        {session.status === 'completed'
+          ? 'Concluído'
+          : session.status === 'cancelled'
+            ? 'Cancelado'
+            : 'Em andamento'}
       </PageSubtitle>
 
       {items.map((item, idx) => {

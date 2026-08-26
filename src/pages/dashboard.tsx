@@ -28,6 +28,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [startingId, setStartingId] = useState<string | null>(null)
+  const [cancelling, setCancelling] = useState(false)
 
   if (!user) {
     throw new Error('Dashboard requires an authenticated user')
@@ -85,6 +86,24 @@ export default function Dashboard() {
     navigate(`/sessao/${data.id}`)
   }
 
+  async function cancelSession() {
+    if (!activeSession) return
+    setCancelling(true)
+    setError('')
+    const { error: updateError } = await supabase
+      .from('closing_sessions')
+      .update({ status: 'cancelled', completed_at: new Date().toISOString() })
+      .eq('id', activeSession.id)
+
+    setCancelling(false)
+    if (updateError) {
+      console.error('cancelSession:', updateError.message)
+      setError('Não foi possível cancelar o checklist.')
+      return
+    }
+    setActiveSession(null)
+  }
+
   if (loading) {
     return (
       <PageMain>
@@ -105,9 +124,19 @@ export default function Dashboard() {
           <CardContent>
             <Badge className="bg-warning-bg text-warning">Em andamento</Badge>
             <p className="mb-3.5 mt-1 font-semibold">Você tem um checklist não finalizado.</p>
-            <Button className="w-full" onClick={() => navigate(`/sessao/${activeSession.id}`)}>
-              Continuar checklist
-            </Button>
+            <div className="flex gap-2">
+              <Button className="flex-1" onClick={() => navigate(`/sessao/${activeSession.id}`)}>
+                Continuar checklist
+              </Button>
+              <Button
+                variant="outline"
+                className="flex-1"
+                disabled={cancelling}
+                onClick={cancelSession}
+              >
+                {cancelling ? <Spinner /> : 'Cancelar'}
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}

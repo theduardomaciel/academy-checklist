@@ -35,7 +35,7 @@ export interface ChecklistItem {
 export interface ClosingSession {
   id: string
   template_id: string
-  status: 'in_progress' | 'completed'
+  status: 'in_progress' | 'completed' | 'cancelled'
   started_at: string
   completed_at: string | null
 }

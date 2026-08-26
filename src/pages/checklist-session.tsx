@@ -223,13 +223,15 @@ export default function ChecklistSession() {
       <BottomNav>
         <Button
           className="w-full max-w-[640px]"
-          disabled={!allDone || finishing || session.status === 'completed'}
+          disabled={!allDone || finishing || session.status !== 'in_progress'}
           onClick={finishSession}
         >
           {finishing ? (
             <Spinner />
           ) : session.status === 'completed' ? (
             'Checklist já finalizado'
+          ) : session.status === 'cancelled' ? (
+            'Checklist cancelado'
           ) : (
             'Finalizar fechamento'
           )}

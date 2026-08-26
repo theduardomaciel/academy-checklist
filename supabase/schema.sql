@@ -33,7 +33,7 @@ create table if not exists closing_sessions (
   id uuid primary key default gen_random_uuid(),
   template_id uuid not null references checklist_templates(id) on delete cascade,
   user_id uuid not null references auth.users(id) on delete cascade,
-  status text not null default 'in_progress' check (status in ('in_progress', 'completed')),
+  status text not null default 'in_progress' check (status in ('in_progress', 'completed', 'cancelled')),
   started_at timestamptz not null default now(),
   completed_at timestamptz
 );

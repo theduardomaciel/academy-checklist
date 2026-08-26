@@ -512,7 +512,9 @@ export default function AdminChecklists() {
 								onRemoveItem={(itemId) =>
 									removeItem(t.id, itemId)
 								}
-								onEditItem={openEditItemDialog}
+								onEditItem={(item) =>
+									openEditItemDialog(t.id, item)
+								}
 							/>
 
 							<div>
