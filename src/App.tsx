@@ -2,6 +2,8 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import type { ReactNode } from 'react'
 import { useAuth } from './contexts/AuthContext'
 import Header from './components/Header'
+import Spinner from './components/Spinner'
+import { CENTERED_SHELL } from './lib/ui'
 import Login from './pages/Login'
 import ResetPassword from './pages/ResetPassword'
 import Dashboard from './pages/Dashboard'
@@ -13,8 +15,8 @@ import AdminChecklists from './pages/AdminChecklists'
 
 function FullScreenLoader() {
   return (
-    <div className="centered-shell">
-      <div className="spinner" style={{ color: 'var(--color-primary)' }} />
+    <div className={CENTERED_SHELL}>
+      <Spinner className="text-primary" />
     </div>
   )
 }
@@ -38,7 +40,7 @@ export default function App() {
   const { user, loading } = useAuth()
 
   return (
-    <div className="app-shell">
+    <div className="flex min-h-full flex-col">
       {user && <Header />}
       <Routes>
         <Route

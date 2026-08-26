@@ -3,6 +3,8 @@ import type { FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import ThemeToggle from '../components/ThemeToggle'
+import Spinner from '../components/Spinner'
+import { BTN_PRIMARY_BLOCK, CARD, CENTERED_SHELL, FIELD_LABEL, FORM_ERROR, INPUT, PAGE_SUBTITLE, PAGE_TITLE } from '../lib/ui'
 
 export default function Login() {
   const { signInWithPassword, resetPasswordForEmail } = useAuth()
@@ -42,35 +44,31 @@ export default function Login() {
   }
 
   return (
-    <div className="centered-shell" style={{ position: 'relative', flexDirection: 'column' }}>
-      <div style={{ position: 'absolute', top: 16, right: 16 }}>
+    <div className={`${CENTERED_SHELL} relative flex-col`}>
+      <div className="absolute right-4 top-4">
         <ThemeToggle />
       </div>
 
-      <div style={{ textAlign: 'center', marginBottom: 28 }}>
-        <img src="/logo-blue.svg" alt="Edge Academy" style={{ height: 56, width: 'auto' }} />
+      <div className="mb-7 text-center">
+        <img src="/logo-blue.svg" alt="Edge Academy" className="h-14 w-auto" />
       </div>
 
-      <form onSubmit={handleSubmit} className="card" style={{ width: '100%', maxWidth: 360 }}>
-        <p className="page-title" style={{ textAlign: 'center' }}>
-          Fechamento do Espaço
-        </p>
-        <p className="page-subtitle" style={{ textAlign: 'center' }}>
+      <form onSubmit={handleSubmit} className={`${CARD} w-full max-w-[360px]`}>
+        <p className={`${PAGE_TITLE} text-center`}>Fechamento do Espaço</p>
+        <p className={`${PAGE_SUBTITLE} text-center`}>
           Entre com o e-mail cadastrado pela Edge Academy.
         </p>
 
-        {error && <div className="form-error">{error}</div>}
-        {info && (
-          <div
-            className="form-error"
-            style={{ background: 'var(--color-success-bg)', color: 'var(--color-success)' }}
-          >
-            {info}
-          </div>
-        )}
+        {error && <div className={FORM_ERROR}>{error}</div>}
+        {info && <div className={`${FORM_ERROR} bg-success-bg text-success`}>{info}</div>}
 
-        <div className="field">
-          <label htmlFor="email">E-mail</label>
+        <div className="mb-4">
+          <label
+            htmlFor="email"
+            className={FIELD_LABEL}
+          >
+            E-mail
+          </label>
           <input
             id="email"
             type="email"
@@ -79,11 +77,17 @@ export default function Login() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="voce@edgeacademy.com"
+            className={INPUT}
           />
         </div>
 
-        <div className="field">
-          <label htmlFor="password">Senha</label>
+        <div className="mb-4">
+          <label
+            htmlFor="password"
+            className={FIELD_LABEL}
+          >
+            Senha
+          </label>
           <input
             id="password"
             type="password"
@@ -92,24 +96,24 @@ export default function Login() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="••••••••"
+            className={INPUT}
           />
         </div>
 
-        <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
-          {loading ? <span className="spinner" /> : 'Entrar'}
+        <button type="submit" className={BTN_PRIMARY_BLOCK} disabled={loading}>
+          {loading ? <Spinner /> : 'Entrar'}
         </button>
 
         <button
           type="button"
-          className="btn btn-ghost"
-          style={{ width: '100%', marginTop: 8, fontSize: 13 }}
+          className="mt-2 inline-flex w-full cursor-pointer items-center justify-center bg-transparent p-2 px-2.5 text-[13px] text-inherit"
           onClick={handleForgotPassword}
         >
           Esqueci minha senha
         </button>
       </form>
 
-      <p style={{ fontSize: 12, color: 'var(--color-text-muted)', marginTop: 20 }}>
+      <p className="mt-5 text-xs text-text-muted">
         Não tem uma conta? Peça ao responsável pelo estágio para criá-la.
       </p>
     </div>

@@ -2,6 +2,18 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../contexts/AuthContext'
+import Spinner from '../components/Spinner'
+import {
+  APP_MAIN,
+  BTN_PRIMARY_BLOCK,
+  BTN_SECONDARY,
+  CARD,
+  CENTERED_SHELL,
+  FORM_ERROR,
+  LIST_NAV,
+  PAGE_SUBTITLE,
+  PAGE_TITLE
+} from '../lib/ui'
 import type { ChecklistTemplate, ClosingSession } from '../types'
 
 interface ActiveSession extends ClosingSession {
@@ -75,65 +87,58 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <main className="app-main">
-        <div className="centered-shell">
-          <span className="spinner" style={{ color: 'var(--color-primary)' }} />
+      <main className={APP_MAIN}>
+        <div className={CENTERED_SHELL}>
+          <Spinner className="text-primary" />
         </div>
       </main>
     )
   }
 
   return (
-    <main className="app-main">
-      <p className="page-title">Olá 👋</p>
-      <p className="page-subtitle">Selecione um checklist para fechar o espaço.</p>
+    <main className={APP_MAIN}>
+      <p className={PAGE_TITLE}>Olá 👋</p>
+      <p className={PAGE_SUBTITLE}>Selecione um checklist para fechar o espaço.</p>
 
-      {error && <div className="form-error">{error}</div>}
+      {error && <div className={FORM_ERROR}>{error}</div>}
 
       {activeSession && (
-        <div
-          className="card"
-          style={{ borderColor: 'var(--color-accent)', borderWidth: 2, marginBottom: 16 }}
-        >
-          <span className="badge badge-warning" style={{ marginBottom: 8 }}>
+        <div className={`${CARD} mb-4 border-2 border-accent`}>
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-warning-bg px-2.5 py-1 text-xs font-semibold text-warning">
             Em andamento
           </span>
-          <p style={{ margin: '4px 0 14px', fontWeight: 600 }}>
-            Você tem um checklist não finalizado.
-          </p>
-          <button
-            className="btn btn-primary btn-block"
-            onClick={() => navigate(`/sessao/${activeSession.id}`)}
-          >
+          <p className="mb-3.5 mt-1 font-semibold">Você tem um checklist não finalizado.</p>
+          <button className={BTN_PRIMARY_BLOCK} onClick={() => navigate(`/sessao/${activeSession.id}`)}>
             Continuar checklist
           </button>
         </div>
       )}
 
       {templates.length === 0 ? (
-        <div className="empty-state card">
+        <div className={`${CARD} px-5 py-12 text-center text-text-muted`}>
           Nenhum checklist ativo foi configurado ainda. Peça ao responsável para cadastrar um em
           `checklist_templates`.
         </div>
       ) : (
         templates.map((tpl) => (
-          <div className="card" key={tpl.id}>
-            <p className="item-card__title">{tpl.name}</p>
-            {tpl.description && <p className="item-card__instructions">{tpl.description}</p>}
+          <div className={`${CARD} mb-3`} key={tpl.id}>
+            <p className="m-0 mb-1 text-base font-bold">{tpl.name}</p>
+            {tpl.description && (
+              <p className="m-0 text-sm leading-normal text-text-muted">{tpl.description}</p>
+            )}
             <button
-              className="btn btn-primary btn-block"
-              style={{ marginTop: 12 }}
+              className={`${BTN_PRIMARY_BLOCK} mt-3`}
               onClick={() => startSession(tpl.id)}
               disabled={!!activeSession || startingId === tpl.id}
             >
-              {startingId === tpl.id ? <span className="spinner" /> : 'Iniciar fechamento'}
+              {startingId === tpl.id ? <Spinner /> : 'Iniciar fechamento'}
             </button>
           </div>
         ))
       )}
 
-      <nav className="list-nav">
-        <button className="btn btn-secondary" onClick={() => navigate('/historico')}>
+      <nav className={LIST_NAV}>
+        <button className={BTN_SECONDARY} onClick={() => navigate('/historico')}>
           Ver histórico
         </button>
       </nav>

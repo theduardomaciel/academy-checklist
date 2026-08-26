@@ -3,6 +3,16 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { supabase, PHOTOS_BUCKET } from '../lib/supabaseClient'
 import ItemCard from '../components/ItemCard'
 import ProgressBar from '../components/ProgressBar'
+import Spinner from '../components/Spinner'
+import {
+  APP_MAIN,
+  BTN_PRIMARY_BLOCK,
+  CARD,
+  FORM_ERROR,
+  LIST_NAV,
+  PAGE_SUBTITLE,
+  PAGE_TITLE
+} from '../lib/ui'
 import type { ChecklistItem, ClosingSession, LogEntry } from '../types'
 
 export default function ChecklistSession() {
@@ -161,9 +171,9 @@ export default function ChecklistSession() {
 
   if (loading) {
     return (
-      <main className="app-main">
-        <div className="centered-shell">
-          <span className="spinner" style={{ color: 'var(--color-primary)' }} />
+      <main className={APP_MAIN}>
+        <div className="flex flex-1 items-center justify-center p-6">
+          <Spinner className="text-primary" />
         </div>
       </main>
     )
@@ -171,8 +181,8 @@ export default function ChecklistSession() {
 
   if ((error && !session) || !session) {
     return (
-      <main className="app-main">
-        <div className="form-error">{error}</div>
+      <main className={APP_MAIN}>
+        <div className={FORM_ERROR}>{error}</div>
       </main>
     )
   }
@@ -180,17 +190,17 @@ export default function ChecklistSession() {
   const allDone = items.length > 0 && completedCount === items.length
 
   return (
-    <main className="app-main">
-      <p className="page-title">Checklist de fechamento</p>
-      <p className="page-subtitle">
+    <main className={APP_MAIN}>
+      <p className={PAGE_TITLE}>Checklist de fechamento</p>
+      <p className={PAGE_SUBTITLE}>
         Siga a ordem dos itens e registre uma foto para cada equipamento.
       </p>
 
-      <div className="card" style={{ marginBottom: 16 }}>
+      <div className={`${CARD} mb-4`}>
         <ProgressBar completed={completedCount} total={items.length} />
       </div>
 
-      {error && <div className="form-error">{error}</div>}
+      {error && <div className={FORM_ERROR}>{error}</div>}
 
       {items.map((item, idx) => {
         const entry = logsByItem[item.id] ?? {}
@@ -209,16 +219,16 @@ export default function ChecklistSession() {
         )
       })}
 
-      <div style={{ height: 90 }} />
+      <div className="h-[90px]" />
 
-      <nav className="list-nav">
+      <nav className={LIST_NAV}>
         <button
-          className="btn btn-primary btn-block"
+          className={BTN_PRIMARY_BLOCK}
           disabled={!allDone || finishing || session.status === 'completed'}
           onClick={finishSession}
         >
           {finishing ? (
-            <span className="spinner" />
+            <Spinner />
           ) : session.status === 'completed' ? (
             'Checklist já finalizado'
           ) : (

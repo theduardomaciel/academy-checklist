@@ -1,6 +1,19 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
+import Spinner from '../components/Spinner'
+import {
+  APP_MAIN,
+  BTN_PRIMARY_BLOCK,
+  BTN_SECONDARY,
+  CARD,
+  FIELD_LABEL,
+  FORM_ERROR,
+  INPUT,
+  LIST_NAV,
+  PAGE_SUBTITLE,
+  PAGE_TITLE
+} from '../lib/ui'
 import type { AdminUser } from '../types'
 
 export default function AdminUsers() {
@@ -91,66 +104,71 @@ export default function AdminUsers() {
   }
 
   return (
-    <main className="app-main">
-      <p className="page-title">Administração · Usuários</p>
-      <p className="page-subtitle">Crie novos usuários e gerencie permissões de administrador.</p>
+    <main className={APP_MAIN}>
+      <p className={PAGE_TITLE}>Administração · Usuários</p>
+      <p className={PAGE_SUBTITLE}>Crie novos usuários e gerencie permissões de administrador.</p>
 
-      {error && <div className="form-error">{error}</div>}
-      {notice && <div className="card" style={{ borderColor: 'var(--color-success)' }}>{notice}</div>}
+      {error && <div className={FORM_ERROR}>{error}</div>}
+      {notice && <div className={`${CARD} mb-3 border-success`}>{notice}</div>}
 
-      <form className="card" onSubmit={handleCreate} style={{ display: 'grid', gap: 12 }}>
-        <label style={{ display: 'grid', gap: 4 }}>
-          <span style={{ fontSize: 13 }}>Nome completo</span>
+      <form className={`${CARD} mb-3 grid gap-3`} onSubmit={handleCreate}>
+        <label className="grid gap-1">
+          <span className={FIELD_LABEL}>Nome completo</span>
           <input
             type="text"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
             placeholder="Maria Silva"
+            className={INPUT}
           />
         </label>
-        <label style={{ display: 'grid', gap: 4 }}>
-          <span style={{ fontSize: 13 }}>E-mail</span>
+        <label className="grid gap-1">
+          <span className={FIELD_LABEL}>E-mail</span>
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="maria@exemplo.com"
             required
+            className={INPUT}
           />
         </label>
-        <label style={{ display: 'grid', gap: 4 }}>
-          <span style={{ fontSize: 13 }}>Senha inicial</span>
+        <label className="grid gap-1">
+          <span className={FIELD_LABEL}>Senha inicial</span>
           <input
             type="text"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Mínimo de 6 caracteres"
             required
+            className={INPUT}
           />
         </label>
-        <button className="btn btn-primary" type="submit" disabled={creating}>
+        <button className={BTN_PRIMARY_BLOCK} type="submit" disabled={creating}>
           {creating ? 'Criando…' : 'Criar usuário'}
         </button>
       </form>
 
       {loading ? (
-        <div className="centered-shell">
-          <span className="spinner" style={{ color: 'var(--color-primary)' }} />
+        <div className="flex flex-1 items-center justify-center p-6">
+          <Spinner className="text-primary" />
         </div>
       ) : (
         users.map((u) => (
-          <div key={u.id} className="card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div key={u.id} className={`${CARD} mb-3`}>
+            <div className="flex items-center justify-between">
               <div>
-                <p style={{ fontWeight: 700, margin: '0 0 4px' }}>
-                  {u.full_name ?? u.email ?? 'Usuário'}
-                </p>
-                <p style={{ fontSize: 13, color: 'var(--color-text-muted)', margin: 0 }}>{u.email}</p>
+                <p className="m-0 mb-1 font-bold">{u.full_name ?? u.email ?? 'Usuário'}</p>
+                <p className="m-0 text-[13px] text-text-muted">{u.email}</p>
               </div>
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                {u.is_admin && <span className="badge badge-success">Admin</span>}
+              <div className="flex items-center gap-2">
+                {u.is_admin && (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-success-bg px-2.5 py-1 text-xs font-semibold text-success">
+                    Admin
+                  </span>
+                )}
                 <button
-                  className="btn btn-secondary"
+                  className={BTN_SECONDARY}
                   onClick={() => toggleAdmin(u)}
                   title={u.is_admin ? 'Remover admin' : 'Tornar admin'}
                 >
@@ -162,11 +180,11 @@ export default function AdminUsers() {
         ))
       )}
 
-      <nav className="list-nav">
-        <Link to="/" className="btn btn-secondary">
+      <nav className={LIST_NAV}>
+        <Link to="/" className={BTN_SECONDARY}>
           Voltar
         </Link>
-        <Link to="/admin/checklists" className="btn btn-secondary">
+        <Link to="/admin/checklists" className={BTN_SECONDARY}>
           Gerenciar checklists
         </Link>
       </nav>

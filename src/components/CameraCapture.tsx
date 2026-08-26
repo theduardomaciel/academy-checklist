@@ -1,5 +1,8 @@
 import type { ChangeEvent } from 'react'
 import { compressPhoto } from '../utils/imageCompression'
+import CameraIcon from './icons/CameraIcon'
+
+const CAPTURE_INPUT_CLASS = 'hidden'
 
 interface CameraCaptureProps {
   photoUrl?: string | null
@@ -30,13 +33,17 @@ export default function CameraCapture({ photoUrl, onPhotoSelected, disabled }: C
   if (photoUrl) {
     return (
       <div>
-        <div className="photo-preview">
-          <img src={photoUrl} alt="Foto do item registrado" />
+        <div className="w-full overflow-hidden rounded-md border border-border bg-bg">
+          <img
+            src={photoUrl}
+            alt="Foto do item registrado"
+            className="block max-h-80 w-full object-cover"
+          />
         </div>
-        <label className="capture-label" style={{ marginTop: 10, padding: '10px 16px' }}>
+        <label className="mt-2.5 flex cursor-pointer items-center justify-center gap-2 rounded-md border-2 border-dashed border-border px-4 py-2.5 text-center text-sm font-semibold text-text-muted hover:border-accent hover:text-accent">
           Tirar outra foto
           <input
-            className="capture-input"
+            className={CAPTURE_INPUT_CLASS}
             type="file"
             accept="image/*"
             capture="environment"
@@ -49,14 +56,11 @@ export default function CameraCapture({ photoUrl, onPhotoSelected, disabled }: C
   }
 
   return (
-    <label className="capture-label">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-        <circle cx="12" cy="13" r="4" />
-      </svg>
+    <label className="flex cursor-pointer items-center justify-center gap-2 rounded-md border-2 border-dashed border-border px-4 py-7 text-center text-sm font-semibold text-text-muted hover:border-accent hover:text-accent">
+      <CameraIcon />
       Tirar foto do item
       <input
-        className="capture-input"
+        className={CAPTURE_INPUT_CLASS}
         type="file"
         accept="image/*"
         capture="environment"

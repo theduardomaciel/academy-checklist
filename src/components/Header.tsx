@@ -1,6 +1,8 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import ThemeToggle from './ThemeToggle'
+import SignOutIcon from './icons/SignOutIcon'
+import SettingsIcon from './icons/SettingsIcon'
 
 export default function Header() {
   const { signOut, isAdmin } = useAuth()
@@ -12,43 +14,33 @@ export default function Header() {
   }
 
   return (
-    <header className="app-header">
-      <Link
-        to="/"
-        className="app-header__brand"
-        style={{ textDecoration: 'none', color: 'inherit' }}
-      >
-        <img src="/logo-white.svg" alt="Edge Academy" />
-        <span className="app-header__brand-text">
+    <header className="sticky top-0 z-10 flex items-center justify-between bg-primary px-5 py-3.5 text-primary-contrast shadow-sm">
+      <Link to="/" className="flex items-center gap-2.5 no-underline text-inherit">
+        <img src="/logo-white.svg" alt="Edge Academy" className="h-7 w-auto" />
+        <span className="text-[15px] font-bold leading-[1.15] tracking-[0.2px]">
           Fechamento do Espaço
-          <span>Edge Academy</span>
+          <span className="block text-[11px] font-normal opacity-75">Edge Academy</span>
         </span>
       </Link>
-      <div className="app-header__actions">
+      <div className="flex items-center gap-2">
         {isAdmin && (
           <button
-            className="btn-ghost"
+            className="cursor-pointer bg-transparent p-2 px-2.5 text-inherit"
             onClick={() => navigate('/admin/usuarios')}
             title="Administração"
             aria-label="Administração"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
-              <path
-                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.66.28 1.1.92 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+            <SettingsIcon />
           </button>
         )}
         <ThemeToggle />
-        <button className="btn-ghost" onClick={handleSignOut} title="Sair" aria-label="Sair">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M16 17l5-5-5-5" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M21 12H9" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
+        <button
+          className="cursor-pointer bg-transparent p-2 px-2.5 text-inherit"
+          onClick={handleSignOut}
+          title="Sair"
+          aria-label="Sair"
+        >
+          <SignOutIcon />
         </button>
       </div>
     </header>

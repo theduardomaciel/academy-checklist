@@ -2,6 +2,15 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { supabase, PHOTOS_BUCKET } from '../lib/supabaseClient'
 import ItemCard from '../components/ItemCard'
+import Spinner from '../components/Spinner'
+import {
+  APP_MAIN,
+  BTN_SECONDARY,
+  FORM_ERROR,
+  LIST_NAV,
+  PAGE_SUBTITLE,
+  PAGE_TITLE
+} from '../lib/ui'
 import type { ChecklistItem, ClosingSession, LogEntry } from '../types'
 
 interface SessionDetailRow extends ClosingSession {
@@ -69,9 +78,9 @@ export default function SessionDetail() {
 
   if (loading) {
     return (
-      <main className="app-main">
-        <div className="centered-shell">
-          <span className="spinner" style={{ color: 'var(--color-primary)' }} />
+      <main className={APP_MAIN}>
+        <div className="flex flex-1 items-center justify-center p-6">
+          <Spinner className="text-primary" />
         </div>
       </main>
     )
@@ -79,16 +88,16 @@ export default function SessionDetail() {
 
   if (error || !session) {
     return (
-      <main className="app-main">
-        <div className="form-error">{error}</div>
+      <main className={APP_MAIN}>
+        <div className={FORM_ERROR}>{error}</div>
       </main>
     )
   }
 
   return (
-    <main className="app-main">
-      <p className="page-title">{session.checklist_templates?.name ?? 'Checklist'}</p>
-      <p className="page-subtitle">
+    <main className={APP_MAIN}>
+      <p className={PAGE_TITLE}>{session.checklist_templates?.name ?? 'Checklist'}</p>
+      <p className={PAGE_SUBTITLE}>
         {new Date(session.started_at).toLocaleString('pt-BR')} ·{' '}
         {session.status === 'completed' ? 'Concluído' : 'Em andamento'}
       </p>
@@ -107,8 +116,8 @@ export default function SessionDetail() {
         )
       })}
 
-      <nav className="list-nav">
-        <button className="btn btn-secondary" onClick={() => navigate('/historico')}>
+      <nav className={LIST_NAV}>
+        <button className={BTN_SECONDARY} onClick={() => navigate('/historico')}>
           Voltar ao histórico
         </button>
       </nav>

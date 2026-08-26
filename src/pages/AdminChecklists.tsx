@@ -1,11 +1,27 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
+import Spinner from '../components/Spinner'
+import {
+  APP_MAIN,
+  BTN_PRIMARY_BLOCK,
+  BTN_SECONDARY,
+  CARD,
+  FIELD_LABEL,
+  FORM_ERROR,
+  INPUT,
+  LIST_NAV,
+  PAGE_SUBTITLE,
+  PAGE_TITLE
+} from '../lib/ui'
 import type { AdminChecklistTemplate, ChecklistItem } from '../types'
 
 interface TemplateWithItems extends AdminChecklistTemplate {
   checklist_items: ChecklistItem[]
 }
+
+const BADGE_WARNING =
+  'inline-flex items-center gap-1.5 rounded-full bg-warning-bg px-2.5 py-1 text-xs font-semibold text-warning'
 
 export default function AdminChecklists() {
   const [templates, setTemplates] = useState<TemplateWithItems[]>([])
@@ -153,78 +169,82 @@ export default function AdminChecklists() {
   }
 
   return (
-    <main className="app-main">
-      <p className="page-title">Administração · Checklists</p>
-      <p className="page-subtitle">Configure os checklists disponíveis no app.</p>
+    <main className={APP_MAIN}>
+      <p className={PAGE_TITLE}>Administração · Checklists</p>
+      <p className={PAGE_SUBTITLE}>Configure os checklists disponíveis no app.</p>
 
-      {error && <div className="form-error">{error}</div>}
-      {notice && <div className="card" style={{ borderColor: 'var(--color-success)' }}>{notice}</div>}
+      {error && <div className={FORM_ERROR}>{error}</div>}
+      {notice && <div className={`${CARD} mb-3 border-success`}>{notice}</div>}
 
-      <form className="card" onSubmit={handleCreateTemplate} style={{ display: 'grid', gap: 12 }}>
-        <label style={{ display: 'grid', gap: 4 }}>
-          <span style={{ fontSize: 13 }}>Nome do checklist</span>
+      <form className={`${CARD} mb-3 grid gap-3`} onSubmit={handleCreateTemplate}>
+        <label className="grid gap-1">
+          <span className={FIELD_LABEL}>Nome do checklist</span>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Fechamento da sala X"
             required
+            className={INPUT}
           />
         </label>
-        <label style={{ display: 'grid', gap: 4 }}>
-          <span style={{ fontSize: 13 }}>Descrição</span>
+        <label className="grid gap-1">
+          <span className={FIELD_LABEL}>Descrição</span>
           <input
             type="text"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Opcional"
+            className={INPUT}
           />
         </label>
-        <button className="btn btn-primary" type="submit" disabled={creating}>
+        <button className={BTN_PRIMARY_BLOCK} type="submit" disabled={creating}>
           {creating ? 'Criando…' : 'Criar checklist'}
         </button>
       </form>
 
       {loading ? (
-        <div className="centered-shell">
-          <span className="spinner" style={{ color: 'var(--color-primary)' }} />
+        <div className="flex flex-1 items-center justify-center p-6">
+          <Spinner className="text-primary" />
         </div>
       ) : (
         templates.map((t) => (
-          <div key={t.id} className="card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div key={t.id} className={`${CARD} mb-3`}>
+            <div className="flex items-center justify-between">
               <div>
-                <p style={{ fontWeight: 700, margin: '0 0 4px' }}>
+                <p className="m-0 mb-1 font-bold">
                   {t.name}{' '}
-                  {!t.is_active && <span className="badge badge-warning">Inativo</span>}
+                  {!t.is_active && <span className={BADGE_WARNING}>Inativo</span>}
                 </p>
                 {t.description && (
-                  <p style={{ fontSize: 13, color: 'var(--color-text-muted)', margin: 0 }}>
-                    {t.description}
-                  </p>
+                  <p className="m-0 text-[13px] text-text-muted">{t.description}</p>
                 )}
               </div>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button className="btn btn-secondary" onClick={() => toggleActive(t)}>
+              <div className="flex gap-2">
+                <button className={BTN_SECONDARY} onClick={() => toggleActive(t)}>
                   {t.is_active ? 'Desativar' : 'Ativar'}
                 </button>
-                <button className="btn btn-secondary" onClick={() => deleteTemplate(t)}>
+                <button className={BTN_SECONDARY} onClick={() => deleteTemplate(t)}>
                   Excluir
                 </button>
               </div>
             </div>
 
-            <ol style={{ margin: '12px 0 0', paddingLeft: 20 }}>
+            <ol className="mb-0 mt-3 pl-5">
               {t.checklist_items.map((item) => (
-                <li key={item.id} style={{ marginBottom: 6 }}>
+                <li key={item.id} className="mb-1.5">
                   <span>{item.title}</span>
-                  {item.requires_photo && <span className="badge badge-muted"> 📷</span>}
+                  {item.requires_photo && (
+                    <span className="inline-flex items-center rounded-full bg-border px-2.5 py-1 text-xs font-semibold text-text-muted">
+                      {' '}
+                      📷
+                    </span>
+                  )}
                   <button
-                    className="btn-ghost"
+                    className="ml-2 inline-flex cursor-pointer items-center bg-transparent p-2 px-2.5 text-inherit"
                     onClick={() => removeItem(t.id, item.id)}
                     title="Remover item"
                     aria-label={`Remover ${item.title}`}
-                    style={{ marginLeft: 8 }}
                   >
                     ✕
                   </button>
@@ -232,22 +252,18 @@ export default function AdminChecklists() {
               ))}
             </ol>
 
-            <button
-              className="btn btn-secondary"
-              style={{ marginTop: 12 }}
-              onClick={() => addItem(t.id)}
-            >
+            <button className={`${BTN_SECONDARY} mt-3`} onClick={() => addItem(t.id)}>
               Adicionar item
             </button>
           </div>
         ))
       )}
 
-      <nav className="list-nav">
-        <Link to="/" className="btn btn-secondary">
+      <nav className={LIST_NAV}>
+        <Link to="/" className={BTN_SECONDARY}>
           Voltar
         </Link>
-        <Link to="/admin/usuarios" className="btn btn-secondary">
+        <Link to="/admin/usuarios" className={BTN_SECONDARY}>
           Gerenciar usuários
         </Link>
       </nav>

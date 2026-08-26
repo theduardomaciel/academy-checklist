@@ -2,6 +2,17 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 import { useAuth } from '../contexts/AuthContext'
+import Spinner from '../components/Spinner'
+import {
+  APP_MAIN,
+  BTN_SECONDARY,
+  CARD,
+  CENTERED_SHELL,
+  FORM_ERROR,
+  LIST_NAV,
+  PAGE_SUBTITLE,
+  PAGE_TITLE
+} from '../lib/ui'
 
 interface HistoryRow {
   id: string
@@ -13,9 +24,17 @@ interface HistoryRow {
 }
 
 const STATUS_LABEL: Record<string, { text: string; className: string }> = {
-  completed: { text: 'Concluído', className: 'badge-success' },
-  in_progress: { text: 'Em andamento', className: 'badge-warning' }
+  completed: {
+    text: 'Concluído',
+    className: 'bg-success-bg text-success'
+  },
+  in_progress: {
+    text: 'Em andamento',
+    className: 'bg-warning-bg text-warning'
+  }
 }
+
+const BADGE = 'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold'
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleString('pt-BR', {
@@ -66,39 +85,41 @@ export default function History() {
   }
 
   return (
-    <main className="app-main">
-      <p className="page-title">Histórico</p>
-      <p className="page-subtitle">
+    <main className={APP_MAIN}>
+      <p className={PAGE_TITLE}>Histórico</p>
+      <p className={PAGE_SUBTITLE}>
         {isAdmin ? 'Fechamentos de todos os usuários.' : 'Seus fechamentos anteriores.'}
       </p>
 
-      {error && <div className="form-error">{error}</div>}
+      {error && <div className={FORM_ERROR}>{error}</div>}
 
       {loading ? (
-        <div className="centered-shell">
-          <span className="spinner" style={{ color: 'var(--color-primary)' }} />
+        <div className={CENTERED_SHELL}>
+          <Spinner className="text-primary" />
         </div>
       ) : sessions.length === 0 ? (
-        <div className="empty-state card">Nenhum fechamento registrado ainda.</div>
+        <div className={`${CARD} px-5 py-12 text-center text-text-muted`}>
+          Nenhum fechamento registrado ainda.
+        </div>
       ) : (
         sessions.map((s) => (
           <Link
             key={s.id}
             to={`/historico/${s.id}`}
-            className="card"
-            style={{ display: 'block', textDecoration: 'none', color: 'inherit' }}
+            className={`${CARD} mb-3 block no-underline`}
+            style={{ color: 'inherit' }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div className="flex items-center justify-between">
               <div>
-                <p style={{ fontWeight: 700, margin: '0 0 4px' }}>
+                <p className="m-0 mb-1 font-bold">
                   {s.checklist_templates?.name ?? 'Checklist'}
                 </p>
-                <p style={{ fontSize: 13, color: 'var(--color-text-muted)', margin: 0 }}>
+                <p className="m-0 text-[13px] text-text-muted">
                   {isAdmin && s.profiles?.full_name ? `${s.profiles.full_name} · ` : ''}
                   {formatDate(s.started_at)}
                 </p>
               </div>
-              <span className={`badge ${STATUS_LABEL[s.status]?.className ?? 'badge-muted'}`}>
+              <span className={`${BADGE} ${STATUS_LABEL[s.status]?.className ?? 'bg-border text-text-muted'}`}>
                 {STATUS_LABEL[s.status]?.text ?? s.status}
               </span>
             </div>
@@ -106,8 +127,8 @@ export default function History() {
         ))
       )}
 
-      <nav className="list-nav">
-        <button className="btn btn-secondary" onClick={() => navigate('/')}>
+      <nav className={LIST_NAV}>
+        <button className={BTN_SECONDARY} onClick={() => navigate('/')}>
           Voltar
         </button>
       </nav>

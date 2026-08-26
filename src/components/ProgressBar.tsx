@@ -8,14 +8,17 @@ export default function ProgressBar({ completed, total }: ProgressBarProps) {
 
   return (
     <div>
-      <div className="progress-label">
+      <div className="mb-2 flex justify-between text-[13px] text-text-muted">
         <span>
           {completed} de {total} itens
         </span>
         <span>{pct}%</span>
       </div>
-      <div className="progress-track">
-        <div className="progress-fill" style={{ width: `${pct}%` }} />
+      <div className="h-2 overflow-hidden rounded-full bg-border">
+        <div
+          className="h-full rounded-full bg-accent transition-[width] duration-250"
+          style={{ width: `${pct}%` }}
+        />
       </div>
     </div>
   )
