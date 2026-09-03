@@ -15,7 +15,7 @@ import {
 } from "@/components/page-shell";
 
 export default function Login() {
-	const { signInWithPassword, resetPasswordForEmail } = useAuth();
+	const { signInWithPassword } = useAuth();
 	const navigate = useNavigate();
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
@@ -38,22 +38,6 @@ export default function Login() {
 			return;
 		}
 		navigate("/");
-	}
-
-	async function handleForgotPassword() {
-		if (!email.trim()) {
-			setError(
-				"Digite seu e-mail acima para receber o link de redefinição.",
-			);
-			return;
-		}
-		setError("");
-		const { error: resetError } = await resetPasswordForEmail(email.trim());
-		if (resetError) {
-			setError("Não foi possível enviar o link. Tente novamente.");
-		} else {
-			setInfo("Link de redefinição enviado para o seu e-mail.");
-		}
 	}
 
 	return (
@@ -121,21 +105,13 @@ export default function Login() {
 						>
 							{loading ? <Spinner /> : "Entrar"}
 						</Button>
-
-						<button
-							type="button"
-							className="mt-2 w-full cursor-pointer bg-transparent p-2 text-[13px] text-inherit"
-							onClick={handleForgotPassword}
-						>
-							Esqueci minha senha
-						</button>
 					</CardContent>
 				</Card>
 			</form>
 
-			<p className="mt-5 text-xs text-center mx-6 text-muted-foreground">
-				Não tem uma conta? Peça a um responsável pela gerência do
-				Academy para criá-la.
+			<p className="mt-5 text-xs text-center mx-6 text-muted-foreground md:max-w-1/2">
+				Não tem uma conta ou esqueceu sua senha? <br /> Peça a um gerente do
+				Academy para criar uma nova conta ou redefinir sua senha.
 			</p>
 		</div>
 	);
